@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 import Layout from '../components/common/Layout';
 import Sidebar from '../components/common/Sidebar';
 import Header from '../components/common/Header';
@@ -25,20 +24,7 @@ const Title = styled.h1`
   margin: 0;
 `;
 
-const Button = styled.button`
-  padding: 10px 20px;
-  background: ${props => props.variant === 'primary' ? '#3182ce' : '#e2e8f0'};
-  color: ${props => props.variant === 'primary' ? 'white' : '#4a5568'};
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${props => props.variant === 'primary' ? '#2c5282' : '#cbd5e0'};
-  }
-`;
+
 
 const Table = styled.table`
   width: 100%;
@@ -89,7 +75,6 @@ const CategoryBadge = styled.span`
 `;
 
 const AdminProducts = () => {
-  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Mock product data

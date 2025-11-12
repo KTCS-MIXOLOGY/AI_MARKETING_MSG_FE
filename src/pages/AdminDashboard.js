@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/common/Layout';
 import Header from '../components/common/Header';
 import Sidebar from '../components/common/Sidebar';

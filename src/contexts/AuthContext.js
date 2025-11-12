@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       // 목업 회원가입 기능
-      const { username, password, name, email, department, role } = userData;
+      const { username, password, name, email, department } = userData;
       
       // 유효성 검사
       if (!username || !password || !name || !email || !department) {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 import Layout from '../components/common/Layout';
 import Sidebar from '../components/common/Sidebar';
 import Header from '../components/common/Header';
@@ -123,7 +122,6 @@ const RoleBadge = styled.span`
 `;
 
 const AdminUsers = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
