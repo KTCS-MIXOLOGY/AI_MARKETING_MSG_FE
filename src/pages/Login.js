@@ -1,187 +1,251 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { useAuth } from '../contexts/AuthContext';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
+// src/pages/Login.js (예시 경로)
+
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
+import Input from "../components/common/Input";
+import Button from "../components/common/Button";
+import Card from "../components/common/Card";
 
 const LoginContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f8fafc;
-  padding: ${props => props.theme.spacing.lg};
+  background: #2d2d2d;
+  padding: 2rem;
 `;
 
 const LoginCard = styled(Card)`
   width: 100%;
-  max-width: 420px;
+  max-width: 470px;
   margin: 0 auto;
-  text-align: center;
-  background: white;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+`;
+
+const RedHeader = styled.div`
+  background: #e60012;
+  padding: 2rem 2rem 2.5rem;
+  text-align: center;
+  color: #ffffff;
 `;
 
 const Logo = styled.div`
-  font-size: ${props => props.theme.fontSizes['3xl']};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  color: ${props => props.theme.colors.primary};
-  margin-bottom: ${props => props.theme.spacing.sm};
-`;
+  margin-bottom: 0.75rem;
 
-const Title = styled.h1`
-  font-size: ${props => props.theme.fontSizes['2xl']};
-  color: #1a202c;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  font-weight: 600;
+  i {
+    font-size: 2rem;
+  }
 `;
 
 const Subtitle = styled.p`
-  color: #718096;
-  margin-bottom: ${props => props.theme.spacing.xl};
-  font-size: ${props => props.theme.fontSizes.md};
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
+  margin: 0;
+`;
+
+const FormContainer = styled.div`
+  padding: 2rem 2.5rem;
 `;
 
 const Form = styled.form`
-  text-align: left;
+  margin-bottom: 0;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: ${props => props.theme.spacing.md};
+  margin-bottom: 1.5rem;
 `;
 
 const Label = styled.label`
   display: block;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  color: #4a5568;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
   font-weight: 500;
-  font-size: ${props => props.theme.fontSizes.sm};
+  font-size: 0.875rem;
+
+  span.required {
+    color: #e60012;
+    margin-left: 2px;
+  }
 `;
 
 const StyledInput = styled(Input)`
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
+  padding: 0.7rem 1rem;
+  border: 1px solid #e3e3e3;
   border-radius: 8px;
-  font-size: ${props => props.theme.fontSizes.md};
+  font-size: 0.8rem;
+  background: #fafafa;
   transition: all 0.2s ease;
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary};
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    border-color: #e60012;
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(230, 0, 18, 0.12);
   }
-  
+
   &::placeholder {
-    color: #a0aec0;
+    color: #b3b3b3;
   }
 `;
 
 const LoginButton = styled(Button)`
   width: 100%;
-  padding: 12px;
-  font-size: ${props => props.theme.fontSizes.md};
+  padding: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  border-radius: 8px;
-  margin-top: ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.primary};
+  border-radius: 6px;
+  background: #e60012;
   border: none;
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${props => props.theme.colors.primaryHover};
-    transform: translateY(-1px);
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+
+  &:hover:not(:disabled) {
+    background: #c50010;
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
   }
+
+  i {
+    font-size: 0.875rem;
+  }
+`;
+
+const Divider = styled.div`
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #999999;
+  font-size: 0.875rem;
 `;
 
 const LinkGroup = styled.div`
   text-align: center;
-  margin-top: ${props => props.theme.spacing.xl};
-  font-size: ${props => props.theme.fontSizes.sm};
-  color: #718096;
+  font-size: 0.875rem;
+  color: #666666;
+  margin-bottom: 1.5rem;
 `;
 
 const StyledLink = styled(Link)`
-  color: ${props => props.theme.colors.primary};
+  color: #e60012;
   text-decoration: none;
-  font-weight: 500;
-  
+  font-weight: 600;
+
   &:hover {
     text-decoration: underline;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fed7d7;
-  color: #c53030;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: ${props => props.theme.spacing.md};
-  font-size: ${props => props.theme.fontSizes.sm};
-  border: 1px solid #feb2b2;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #fecaca;
 `;
 
+/* ▼ 데모 계정 박스 – 두 번째 디자인 느낌 */
+
 const DemoInfo = styled.div`
-  background: #e6fffa;
-  color: #234e52;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: ${props => props.theme.spacing.lg};
-  font-size: ${props => props.theme.fontSizes.sm};
-  border: 1px solid #81e6d9;
-  text-align: left;
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 1.25rem 1.25rem 1.4rem;
+  border: 1px solid #eeeeee;
 `;
 
 const DemoTitle = styled.div`
-  font-weight: 600;
-  margin-bottom: ${props => props.theme.spacing.xs};
-`;
-
-const DemoItem = styled.div`
-  margin-bottom: ${props => props.theme.spacing.xs};
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const QuickLogin = styled.div`
   display: flex;
-  gap: 8px;
-  margin-top: ${props => props.theme.spacing.md};
-`;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #333333;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
 
-const QuickButton = styled.button`
-  flex: 1;
-  padding: 8px;
-  font-size: ${props => props.theme.fontSizes.xs};
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: #edf2f7;
-    border-color: ${props => props.theme.colors.primary};
+  i {
+    font-size: 0.9rem;
+    color: #666666;
   }
 `;
+
+const DemoRow = styled.div`
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #333333;
+
+  & + & {
+    margin-top: 0.55rem;
+  }
+`;
+
+const DemoText = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  strong {
+    font-weight: 600;
+  }
+`;
+
+const QuickIconButton = styled.button`
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #666666;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  i {
+    font-size: 0.8rem;
+  }
+
+  &:hover {
+    background: #f2f2f2;
+    color: #e60012;
+  }
+`;
+
+/* ▲ 여기까지 데모 계정 스타일 */
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -189,15 +253,15 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    // Clear error when user starts typing
+
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -205,10 +269,10 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.username.trim()) {
-      newErrors.username = '아이디를 입력해주세요.';
+      newErrors.username = "아이디를 입력해주세요.";
     }
     if (!formData.password.trim()) {
-      newErrors.password = '비밀번호를 입력해주세요.';
+      newErrors.password = "비밀번호를 입력해주세요.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -222,79 +286,129 @@ const Login = () => {
     try {
       const result = await login(formData);
       if (!result.success) {
-        setErrors({ submit: result.error || '로그인에 실패했습니다.' });
+        setErrors({ submit: result.error || "로그인에 실패했습니다." });
       }
     } catch (error) {
-      setErrors({ submit: '로그인에 실패했습니다.' });
+      setErrors({ submit: "로그인에 실패했습니다." });
     } finally {
       setLoading(false);
     }
   };
 
-  const quickLogin = (username, password) => {
+  // 데모 계정 바로 로그인
+  const handleQuickLogin = async (username, password) => {
     setFormData({ username, password });
+    setErrors({});
+    setLoading(true);
+    try {
+      const result = await login({ username, password });
+      if (!result.success) {
+        setErrors({ submit: result.error || "로그인에 실패했습니다." });
+      }
+    } catch (error) {
+      setErrors({ submit: "로그인에 실패했습니다." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <LoginContainer>
       <LoginCard>
-        <Logo>KT CS</Logo>
-        <Title>마케팅 메시지 생성 시스템</Title>
-        <Subtitle>AI 기반 개인화된 마케팅 메시지를 생성하세요</Subtitle>
-        
-        <DemoInfo>
-          <DemoTitle>📝 테스트 계정</DemoTitle>
-          <DemoItem><strong>관리자:</strong> admin / admin123</DemoItem>
-          <DemoItem><strong>사용자:</strong> user01 / user123</DemoItem>
-          <QuickLogin>
-            <QuickButton type="button" onClick={() => quickLogin('admin', 'admin123')}>
-              관리자로 바로 로그인
-            </QuickButton>
-            <QuickButton type="button" onClick={() => quickLogin('user01', 'user123')}>
-              사용자로 바로 로그인
-            </QuickButton>
-          </QuickLogin>
-        </DemoInfo>
+        <RedHeader>
+          <Logo>
+            <i className="fas fa-comments" />
+            KT
+          </Logo>
+          <Subtitle>AI 마케팅 메시지 생성 시스템</Subtitle>
+        </RedHeader>
 
-        {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
-        
-        <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label htmlFor="username">아이디</Label>
-            <StyledInput
-              id="username"
-              name="username"
-              type="text"
-              placeholder="아이디를 입력하세요"
-              value={formData.username}
-              onChange={handleChange}
-              error={errors.username}
-              disabled={loading}
-            />
-          </FormGroup>
-          
-          <FormGroup>
-            <Label htmlFor="password">비밀번호</Label>
-            <StyledInput
-              id="password"
-              name="password"
-              type="password"
-              placeholder="비밀번호를 입력하세요"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              disabled={loading}
-            />
-          </FormGroup>
-          
-          <LoginButton type="submit" disabled={loading}>
-            {loading ? '로그인 중...' : '로그인'}
-          </LoginButton>
-        </Form>
-        
-        <LinkGroup>
-          계정이 없으신가요? <StyledLink to="/register">회원가입</StyledLink>
-        </LinkGroup>
+        <FormContainer>
+          {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
+
+          <Form onSubmit={handleSubmit}>
+            <FormGroup>
+              <Label htmlFor="username">
+                아이디 <span className="required">*</span>
+              </Label>
+              <StyledInput
+                id="username"
+                name="username"
+                type="text"
+                placeholder="아이디를 입력하세요"
+                value={formData.username}
+                onChange={handleChange}
+                error={errors.username}
+                disabled={loading}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label htmlFor="password">
+                비밀번호 <span className="required">*</span>
+              </Label>
+              <StyledInput
+                id="password"
+                name="password"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                disabled={loading}
+              />
+            </FormGroup>
+
+            <LoginButton type="submit" disabled={loading}>
+              <i className="fas fa-arrow-right" />
+              {loading ? "로그인 중..." : "로그인"}
+            </LoginButton>
+          </Form>
+
+          <Divider>또는</Divider>
+
+          <LinkGroup>
+            계정이 없으신가요? <StyledLink to="/register">회원가입</StyledLink>
+          </LinkGroup>
+
+          {/* 데모 계정 블록 */}
+          <DemoInfo>
+            <DemoTitle>
+              <i className="fas fa-info-circle" />
+              데모 계정 정보
+            </DemoTitle>
+
+            <DemoRow>
+              <DemoText>
+                <strong>관리자:</strong>
+                <span>admin / admin123</span>
+              </DemoText>
+              <QuickIconButton
+                type="button"
+                onClick={() => handleQuickLogin("admin", "admin123")}
+                aria-label="관리자 계정으로 바로 로그인"
+              >
+                <i className="far fa-copy" />
+                <span>바로 로그인</span>
+              </QuickIconButton>
+            </DemoRow>
+
+            <DemoRow>
+              <DemoText>
+                <strong>실행자:</strong>
+                <span>user01 / user123</span>
+              </DemoText>
+              <QuickIconButton
+                type="button"
+                onClick={() => handleQuickLogin("user", "user123")}
+                aria-label="실행자 계정으로 바로 로그인"
+              >
+                <i className="far fa-copy" />
+                <span>바로 로그인</span>
+              </QuickIconButton>
+            </DemoRow>
+          </DemoInfo>
+        </FormContainer>
       </LoginCard>
     </LoginContainer>
   );
