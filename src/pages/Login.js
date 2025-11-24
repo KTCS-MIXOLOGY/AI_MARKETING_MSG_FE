@@ -396,7 +396,7 @@ const Login = () => {
             <DemoRow>
               <DemoText>
                 <strong>실행자:</strong>
-                <span>user01 / user123</span>
+                <span>user / user123</span>
               </DemoText>
               <QuickIconButton
                 type="button"
