@@ -106,7 +106,7 @@ const Sidebar = ({ activeMenu }) => {
     },
     {
       id: "logs",
-      label: "로그 분석",
+      label: "로그 관리",
       icon: "fa-chart-line",
       path: "/admin/messages",
     },
