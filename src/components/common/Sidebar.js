@@ -110,6 +110,12 @@ const Sidebar = ({ activeMenu }) => {
       icon: "fa-chart-line",
       path: "/admin/messages",
     },
+    {
+      id: "settings",
+      label: "설정",
+      icon: "fa-cog",
+      path: "/admin/settings",
+    },
   ];
 
   const userMenuItems = [
