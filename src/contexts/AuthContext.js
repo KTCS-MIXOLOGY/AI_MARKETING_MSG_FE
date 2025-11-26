@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
         const adminUser = {
           id: 1,
           username: "admin",
-          name: "관리자",
+          name: "김영희",
           email: "admin@ktcs.com",
           role: "admin",
           department: "관리팀",
