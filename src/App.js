@@ -12,7 +12,7 @@ import Customers from "./pages/UserCustomers";
 import Campaigns from "./pages/UserCampaigns";
 import Products from "./pages/UserProducts";
 import Settings from "./pages/UserSettings";
-import Customer360 from "./pages/UserCustomer360";
+import Customer360 from "./pages/UserCustomerList";
 import UserHistory from "./pages/UserHistory";
 import AdminUsers from "./pages/AdminUsers";
 import AdminCampaigns from "./pages/AdminCampaigns";
