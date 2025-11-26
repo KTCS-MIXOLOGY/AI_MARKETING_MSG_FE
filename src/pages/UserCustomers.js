@@ -72,6 +72,7 @@ const Button = styled.button`
 `;
 
 const TableContainer = styled.div`
+  background: white;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
@@ -183,14 +184,11 @@ const EmptyText = styled.p`
   margin: 0;
 `;
 
-// ==================== Component ====================
-
-const CustomerView = () => {
+const UserCustomers = () => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Mock customer data
   const customers = [
     {
       id: 1,
@@ -247,7 +245,6 @@ const CustomerView = () => {
   };
 
   const handleSearch = () => {
-    // Search is handled by the filter
     console.log("Searching for:", searchTerm);
   };
 
@@ -346,4 +343,4 @@ const CustomerView = () => {
   );
 };
 
-export default CustomerView;
+export default UserCustomers;

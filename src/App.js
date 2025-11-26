@@ -8,11 +8,11 @@ import AdminDashboard from "./pages/AdminDashboard";
 import MessageSegment from "./pages/UserMsgSeg";
 import MessageIndividual from "./pages/UserMsgIndiv";
 import Message from "./pages/UserMessage";
-import Customers from "./pages/UserCustomers";
 import Campaigns from "./pages/UserCampaigns";
 import Products from "./pages/UserProducts";
 import Settings from "./pages/UserSettings";
-import Customer360 from "./pages/UserCustomerList";
+import UserCustomers from "./pages/UserCustomers";
+import UserCustomer360 from "./pages/UserCustomerList";
 import UserHistory from "./pages/UserHistory";
 import AdminUsers from "./pages/AdminUsers";
 import AdminCampaigns from "./pages/AdminCampaigns";
@@ -37,6 +37,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
           <Route
             path="/dashboard"
             element={
@@ -45,6 +46,7 @@ function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/admin"
             element={
@@ -53,6 +55,7 @@ function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/admin/users"
             element={
@@ -93,6 +96,7 @@ function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/message/segment"
             element={
@@ -113,10 +117,11 @@ function App() {
             path="/customers"
             element={
               <PrivateRoute>
-                <Customers />
+                <UserCustomers />
               </PrivateRoute>
             }
           />
+
           <Route
             path="/message"
             element={
@@ -161,10 +166,11 @@ function App() {
             path="/customer/:id"
             element={
               <PrivateRoute>
-                <Customer360 />
+                <UserCustomer360 />
               </PrivateRoute>
             }
           />
+
           <Route path="/" element={<Login />} />
         </Routes>
       </AuthProvider>
