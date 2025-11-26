@@ -47,7 +47,7 @@ const HeroButtonRow = styled.div`
 const HeroButton = styled.button`
   min-width: 180px;
   height: 52px;
-  border-radius: 9999px;
+  border-radius: 10px;
   border: none;
   padding: 0 1.75rem;
   font-size: 0.95rem;
