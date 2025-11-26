@@ -258,17 +258,6 @@ const AdminProducts = () => {
     return catOk && stockOk;
   });
 
-  const handleEdit = (product) => {
-    console.log("edit product:", product);
-    alert(`"${product.name}" 수정 기능은 추후 API 연동 예정입니다.`);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("해당 상품을 삭제하시겠습니까?")) {
-      alert("목업 데이터라 실제로는 삭제되지 않습니다.");
-    }
-  };
-
   return (
     <Layout
       sidebarCollapsed={sidebarCollapsed}
