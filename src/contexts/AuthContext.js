@@ -50,7 +50,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("token", "admin_token_123");
         localStorage.setItem("user", JSON.stringify(adminUser));
         setUser(adminUser);
-        toast.success("관리자로 로그인되었습니다.");
         navigate("/admin");
         return { success: true };
       }
@@ -69,7 +68,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("token", "user_token_456");
         localStorage.setItem("user", JSON.stringify(normalUser));
         setUser(normalUser);
-        toast.success("로그인되었습니다.");
         navigate("/dashboard");
         return { success: true };
       }
@@ -112,7 +110,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     setUser(null);
     navigate("/login");
-    toast.success("로그아웃되었습니다.");
   };
 
   const updateProfile = async (profileData) => {
