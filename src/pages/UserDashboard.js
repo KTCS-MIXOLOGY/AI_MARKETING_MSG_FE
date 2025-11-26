@@ -1,270 +1,388 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { useAuth } from '../contexts/AuthContext';
-import Layout from '../components/common/Layout';
-import Header from '../components/common/Header';
-import Sidebar from '../components/common/Sidebar';
-import Card from '../components/common/Card';
-import Grid from '../components/common/Grid';
-import Badge from '../components/common/Badge';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
+import Layout from "../components/common/Layout";
+import Header from "../components/common/Header";
+import Sidebar from "../components/common/Sidebar";
+import Card from "../components/common/Card";
+
+/* ----- 공통 컨테이너 ----- */
 
 const DashboardContainer = styled.div`
-  padding: ${props => props.theme.spacing.lg};
+  padding: ${(props) => props.theme.spacing.lg};
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
-const WelcomeSection = styled.div`
-  margin-bottom: ${props => props.theme.spacing.xl};
+/* ----- 상단 빨간 Hero 영역 ----- */
+
+const HeroSection = styled.div`
+  background: #e60012;
+  border-radius: 24px;
+  padding: 3rem 3.5rem;
+  margin-bottom: 2.5rem;
+  color: #ffffff;
+  text-align: center;
 `;
 
-const WelcomeTitle = styled.h1`
-  font-size: ${props => props.theme.fontSizes['2xl']};
-  color: #2d3748;
-  margin-bottom: ${props => props.theme.spacing.xs};
+const HeroTitle = styled.h1`
+  font-size: 1.9rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+`;
+
+const HeroSubtitle = styled.p`
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+`;
+
+const HeroButtonRow = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+const HeroButton = styled.button`
+  min-width: 180px;
+  height: 52px;
+  border-radius: 10px;
+  border: none;
+  padding: 0 1.75rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+
+  background: ${(props) =>
+    props.variant === "primary" ? "#ffffff" : "#b8000e"};
+  color: ${(props) => (props.variant === "primary" ? "#e60012" : "#ffffff")};
+
+  &:hover {
+    transform: translateY(-2px);
+    background: ${(props) =>
+      props.variant === "primary" ? "#f7f7f7" : "#9f000c"};
+  }
+
+  i {
+    font-size: 1rem;
+  }
 `;
 
-const WelcomeSubtitle = styled.p`
-  color: #718096;
-  font-size: ${props => props.theme.fontSizes.md};
-`;
+/* ----- 통계 카드 영역 ----- */
 
-const StatsGrid = styled(Grid)`
-  margin-bottom: ${props => props.theme.spacing.xl};
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2.25rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const StatCard = styled(Card)`
-  text-align: center;
-  padding: ${props => props.theme.spacing.lg};
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-`;
-
-const StatValue = styled.div`
-  font-size: ${props => props.theme.fontSizes['3xl']};
-  font-weight: 700;
-  color: ${props => props.color || props.theme.colors.primary};
-  margin-bottom: ${props => props.theme.spacing.xs};
+  padding: 1.75rem 1.5rem;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 `;
 
 const StatLabel = styled.div`
-  font-size: ${props => props.theme.fontSizes.md};
-  color: #718096;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
 `;
 
-const ActionGrid = styled(Grid)`
-  margin-bottom: ${props => props.theme.spacing.xl};
+const StatValue = styled.div`
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e60012;
 `;
 
-const ActionCard = styled(Card)`
-  text-align: center;
-  padding: ${props => props.theme.spacing.xl};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    border-color: ${props => props.theme.colors.primary};
-  }
+/* ----- 활성 캠페인 카드 ----- */
+
+const SectionCard = styled(Card)`
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  overflow: hidden;
 `;
 
-const ActionIcon = styled.div`
-  font-size: ${props => props.theme.fontSizes['2xl']};
-  margin-bottom: ${props => props.theme.spacing.md};
-`;
-
-const ActionTitle = styled.h3`
-  font-size: ${props => props.theme.fontSizes.lg};
-  color: #2d3748;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  font-weight: 600;
-`;
-
-const ActionDescription = styled.p`
-  color: #718096;
-  font-size: ${props => props.theme.fontSizes.sm};
-  line-height: 1.5;
-`;
-
-const RecentMessages = styled.div`
-  margin-top: ${props => props.theme.spacing.xl};
+const SectionHeader = styled.div`
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid #e5e7eb;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: ${props => props.theme.fontSizes.xl};
-  color: #2d3748;
-  margin-bottom: ${props => props.theme.spacing.lg};
+  font-size: 1rem;
   font-weight: 600;
+  margin: 0;
+
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+
+  &::before {
+    content: "";
+    width: 3px;
+    height: 18px;
+    background: #e60012;
+    border-radius: 999px;
+  }
 `;
 
-const MessageItem = styled.div`
+const CampaignList = styled.div`
+  padding: 0.75rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const CampaignItem = styled.div`
   display: flex;
   align-items: center;
-  padding: ${props => props.theme.spacing.md};
-  border-bottom: 1px solid #e2e8f0;
-  transition: background-color 0.2s ease;
-  
+  padding: 0.9rem 0.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
   &:hover {
-    background-color: #f7fafc;
-  }
-  
-  &:last-child {
-    border-bottom: none;
+    background: #f9fafb;
   }
 `;
 
-const MessageIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: ${props => props.theme.colors.primary};
-  color: white;
+const CampaignIcon = styled.div`
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  flex-shrink: 0;
+
+  background: #e60012;
+  color: #ffffff;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: ${props => props.theme.fontSizes.sm};
-  margin-right: ${props => props.theme.spacing.md};
+
+  margin-right: 1rem;
+
+  i {
+    font-size: 1.3rem;
+  }
 `;
 
-const MessageInfo = styled.div`
+const CampaignInfo = styled.div`
   flex: 1;
 `;
 
-const MessageTitle = styled.div`
+const CampaignTitle = styled.div`
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #2d3748;
-  font-size: ${props => props.theme.fontSizes.sm};
 `;
 
-const MessageDate = styled.div`
-  color: #718096;
-  font-size: ${props => props.theme.fontSizes.xs};
+const CampaignMeta = styled.div`
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.25rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
 `;
+
+const CampaignButton = styled.button`
+  padding: 0.55rem 1.4rem;
+  border-radius: 6px;
+  border: none;
+  background: #e60012;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  i {
+    font-size: 0.75rem;
+  }
+
+  &:hover {
+    background: #c00010;
+    transform: translateY(-1px);
+  }
+`;
+
+/* ----- 아이콘 매핑 함수 ----- */
+
+const getCampaignIcon = (type) => {
+  if (type.includes("신규")) return "fa-users";
+  if (type.includes("기존")) return "fa-user-check";
+  if (type.includes("크로스")) return "fa-layer-group";
+  if (type.includes("이탈")) return "fa-shield-alt";
+  return "fa-bullhorn";
+};
 
 const UserDashboard = ({ onMenuClick }) => {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // 샘플 캠페인 데이터
+  const campaigns = [
+    {
+      id: 1,
+      title: "갤럭시 S24 출시 프로모션",
+      type: "신규 고객 유치",
+      start: "2024-01-01",
+      end: "2024-03-31",
+    },
+    {
+      id: 2,
+      title: "장기 고객 감사 이벤트",
+      type: "기존 고객 유지",
+      start: "2024-02-01",
+      end: "2024-06-30",
+    },
+    {
+      id: 3,
+      title: "IoT 결합 상품 안내",
+      type: "크로스셀링",
+      start: "2024-01-15",
+      end: "2024-04-15",
+    },
+    {
+      id: 4,
+      title: "데이터 무제한 전환",
+      type: "이탈 방지",
+      start: "2024-02-01",
+      end: "2024-05-31",
+    },
+  ];
+
   const stats = [
-    { label: '활성 캠페인', value: 8, color: '#38a169' },
-    { label: '활성 상품수', value: 24, color: '#3182ce' },
-    { label: '생성 메시지 수', value: 156, color: '#d69e2e' }
+    { label: "생성한 메시지", value: 7 },
+    { label: "발송 완료", value: 5 },
+    { label: "활성 캠페인", value: 4 },
+    { label: "평균 전환율", value: "15.8%" },
   ];
 
-  const actions = [
-    {
-      id: 'message-segment',
-      title: '세그먼트 메시지 생성',
-      description: '고객 세그먼트를 대상으로 맞춤형 마케팅 메시지를 생성합니다.',
-      icon: '🎯',
-      path: '/message/segment',
-    },
-    {
-      id: 'message-individual',
-      title: '개인 메시지 생성',
-      description: '개별 고객에게 최적화된 메시지를 생성합니다.',
-      icon: '👤',
-      path: '/message/individual',
-    },
-    {
-      id: 'customer-360',
-      title: '고객 정보 조회',
-      description: '고객의 전체 정보를 한눈에 확인하고 분석합니다.',
-      icon: '📊',
-      path: '/customers',
-    },
-    {
-      id: 'analytics',
-      title: '성과 분석',
-      description: '마케팅 캠페인의 성과를 분석하고 인사이트를 도출합니다.',
-      icon: '📈',
-      path: '/analytics',
-    },
-  ];
-
-  const recentMessages = [
-    { id: 1, title: '5G 프리미엄 요금제 프로모션', type: '세그먼트', date: '2024-01-15', status: 'success' },
-    { id: 2, title: '김철수님 맞춤 요금제 안내', type: '개인', date: '2024-01-14', status: 'active' },
-    { id: 3, title: '신규 가입자 환영 이벤트', type: '세그먼트', date: '2024-01-13', status: 'active' },
-    { id: 4, title: '이영희님 데이터 상품 추천', type: '개인', date: '2024-01-12', status: 'success' },
-    { id: 5, title: '요금제 변경 안내', type: '세그먼트', date: '2024-01-11', status: 'active' },
-  ];
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  const handleActionClick = (path) => {
-    if (onMenuClick) {
-      onMenuClick(path);
-    } else {
-      window.location.href = path;
-    }
+  const handleNavigate = (path) => {
+    if (onMenuClick) onMenuClick(path);
+    else window.location.href = path;
   };
 
   return (
     <Layout
-      sidebar={<Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} onMenuClick={handleActionClick} />}
-      header={<Header 
-        sidebarCollapsed={sidebarCollapsed} 
-        onToggleSidebar={toggleSidebar}
-        currentPage="대시보드"
-      />}
+      sidebar={
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onMenuClick={handleNavigate}
+        />
+      }
+      header={
+        <Header
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+          currentPage="대시보드"
+        />
+      }
     >
       <DashboardContainer>
-        <WelcomeSection>
-          <WelcomeTitle>{user?.name || '사용자'}님, 환영합니다! 👋</WelcomeTitle>
-          <WelcomeSubtitle>AI 기반 개인화된 마케팅 메시지 생성 시스템</WelcomeSubtitle>
-        </WelcomeSection>
+        {/* Hero Section */}
+        <HeroSection>
+          <HeroTitle>AI 기반 마케팅 메시지 자동 생성</HeroTitle>
+          <HeroSubtitle>
+            고객 세그먼트와 캠페인을 선택하면 AI가 최적화된 메시지를 생성합니다.
+          </HeroSubtitle>
 
-        <StatsGrid columns={3} mdColumns={2} smColumns={1}>
-          {stats.map((stat, index) => (
-            <StatCard key={index} hover>
-              <StatValue color={stat.color}>{stat.value}</StatValue>
-              <StatLabel>{stat.label}</StatLabel>
+          <HeroButtonRow>
+            <HeroButton
+              variant="primary"
+              onClick={() => handleNavigate("/message/segment")}
+            >
+              <i className="fas fa-pen" />
+              메시지 생성하기
+            </HeroButton>
+
+            <HeroButton
+              variant="secondary"
+              onClick={() => handleNavigate("/customers")}
+            >
+              <i className="fas fa-user" />
+              고객 조회
+            </HeroButton>
+          </HeroButtonRow>
+        </HeroSection>
+
+        {/* Stats */}
+        <StatsGrid>
+          {stats.map((s, i) => (
+            <StatCard key={i}>
+              <StatLabel>{s.label}</StatLabel>
+              <StatValue>{s.value}</StatValue>
             </StatCard>
           ))}
         </StatsGrid>
 
-        <ActionGrid columns={2} mdColumns={1} smColumns={1}>
-          {actions.slice(0, 2).map((action) => (
-            <ActionCard key={action.id} onClick={() => handleActionClick(action.path)} hover>
-              <ActionIcon>{action.icon}</ActionIcon>
-              <ActionTitle>{action.title}</ActionTitle>
-              <ActionDescription>{action.description}</ActionDescription>
-            </ActionCard>
-          ))}
-        </ActionGrid>
+        {/* Campaign List */}
+        <SectionCard>
+          <SectionHeader>
+            <SectionTitle>활성 캠페인</SectionTitle>
+          </SectionHeader>
 
-        <RecentMessages>
-          <SectionTitle>최근 생성된 메시지</SectionTitle>
-          <Card>
-            {recentMessages.map((message) => (
-              <MessageItem key={message.id}>
-                <MessageIcon>{message.type === '세그먼트' ? '🎯' : '👤'}</MessageIcon>
-                <MessageInfo>
-                  <MessageTitle>{message.title}</MessageTitle>
-                  <MessageDate>{message.date} • {message.type}</MessageDate>
-                </MessageInfo>
-                <Badge variant={message.status === 'success' ? 'success' : 'primary'}>
-                  {message.status === 'success' ? '완료' : '진행중'}
-                </Badge>
-              </MessageItem>
+          <CampaignList>
+            {campaigns.map((c) => (
+              <CampaignItem key={c.id}>
+                <CampaignIcon>
+                  <i className={`fas ${getCampaignIcon(c.type)}`} />
+                </CampaignIcon>
+
+                <CampaignInfo>
+                  <CampaignTitle>{c.title}</CampaignTitle>
+
+                  <CampaignMeta>
+                    <span>
+                      <i className="fas fa-tag" />
+                      {c.type}
+                    </span>
+
+                    <span>
+                      <i className="fas fa-calendar-alt" />
+                      {c.start} ~ {c.end}
+                    </span>
+                  </CampaignMeta>
+                </CampaignInfo>
+
+                <CampaignButton
+                  onClick={() => handleNavigate("/message/segment")}
+                >
+                  메시지 생성
+                </CampaignButton>
+              </CampaignItem>
             ))}
-          </Card>
-        </RecentMessages>
+          </CampaignList>
+        </SectionCard>
       </DashboardContainer>
     </Layout>
   );

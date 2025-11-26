@@ -27,10 +27,10 @@ const Logo = styled.div`
   color: #e60012;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 
   i {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 `;
 
@@ -39,10 +39,10 @@ const Navigation = styled.nav`
 `;
 
 const NavItem = styled.div`
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.875rem;
   color: ${(props) => (props.active ? "#FFFFFF" : "#D4D4D4")};
   transition: all 0.3s ease;
   cursor: pointer;
@@ -57,8 +57,8 @@ const NavItem = styled.div`
   }
 
   i {
-    font-size: 1.25rem;
-    width: 24px;
+    font-size: 1.125rem;
+    width: 20px;
     text-align: center;
   }
 
@@ -108,30 +108,53 @@ const Sidebar = ({ activeMenu }) => {
       id: "logs",
       label: "로그 분석",
       icon: "fa-chart-line",
-      path: "/admin/logs",
+      path: "/admin/messages",
     },
   ];
 
   const userMenuItems = [
     {
       id: "dashboard",
-      label: "대시보드",
-      icon: "fa-th-large",
+      label: "홈",
+      icon: "fa-home",
       path: "/dashboard",
     },
     {
       id: "message",
       label: "메시지 생성",
-      icon: "fa-envelope",
+      icon: "fa-magic",
       path: "/message",
     },
     {
-      id: "customers",
-      label: "고객 조회",
-      icon: "fa-search",
+      id: "customer-view",
+      label: "고객 360도 뷰",
+      icon: "fa-user-circle",
       path: "/customers",
     },
-    { id: "history", label: "발송 내역", icon: "fa-history", path: "/history" },
+    {
+      id: "history",
+      label: "발송 이력",
+      icon: "fa-history",
+      path: "/history",
+    },
+    {
+      id: "campaigns",
+      label: "캠페인 조회",
+      icon: "fa-bullhorn",
+      path: "/campaigns",
+    },
+    {
+      id: "products",
+      label: "상품 조회",
+      icon: "fa-box",
+      path: "/products",
+    },
+    {
+      id: "settings",
+      label: "설정",
+      icon: "fa-cog",
+      path: "/settings",
+    },
   ];
 
   const getMenuItems = () => {
@@ -146,12 +169,16 @@ const Sidebar = ({ activeMenu }) => {
     return location.pathname === path;
   };
 
+  const getLogoText = () => {
+    return user?.role === "admin" ? "KT Admin" : "KT User";
+  };
+
   return (
     <SidebarContainer>
       <SidebarHeader>
         <Logo>
           <i className="fas fa-comments"></i>
-          <span>KT Admin</span>
+          <span>{getLogoText()}</span>
         </Logo>
       </SidebarHeader>
 
