@@ -13,6 +13,7 @@ import Campaigns from "./pages/UserCampaigns";
 import Products from "./pages/UserProducts";
 import Settings from "./pages/UserSettings";
 import Customer360 from "./pages/UserCustomer360";
+import UserHistory from "./pages/UserHistory";
 import AdminUsers from "./pages/AdminUsers";
 import AdminCampaigns from "./pages/AdminCampaigns";
 import AdminProducts from "./pages/AdminProducts";
@@ -137,6 +138,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Products />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <PrivateRoute>
+                <UserHistory />
               </PrivateRoute>
             }
           />
