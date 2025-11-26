@@ -158,7 +158,7 @@ const ButtonGroup = styled.div`
 `;
 
 const Button = styled.button`
-  padding: 0.35rem 0.8rem;
+  padding: 0.6rem 0.8rem;
   border: none;
   border-radius: 8px;
   font-size: 0.8rem;
