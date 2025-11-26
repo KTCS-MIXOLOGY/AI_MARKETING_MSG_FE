@@ -1,50 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { useAuth } from '../contexts/AuthContext';
-import Layout from '../components/common/Layout';
-import Header from '../components/common/Header';
-import Sidebar from '../components/common/Sidebar';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import Grid from '../components/common/Grid';
-import Badge from '../components/common/Badge';
-import Loading from '../components/common/Loading';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
+import Layout from "../components/common/Layout";
+import Header from "../components/common/Header";
+import Sidebar from "../components/common/Sidebar";
+import Card from "../components/common/Card";
+import Button from "../components/common/Button";
+import Grid from "../components/common/Grid";
+import Badge from "../components/common/Badge";
+import Loading from "../components/common/Loading";
 
 const CustomerContainer = styled.div`
-  padding: ${props => props.theme.spacing.lg};
+  padding: ${(props) => props.theme.spacing.lg};
 `;
 
 const CustomerHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${props => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 
 const CustomerTitle = styled.h2`
   margin: 0;
-  color: ${props => props.theme.colors.gray[800]};
+  color: ${(props) => props.theme.colors.gray[800]};
 `;
 
 const CustomerProfile = styled(Card)`
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  margin-bottom: ${props => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 
 const ProfileHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${props => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 
 const ProfileInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.lg};
+  gap: ${(props) => props.theme.spacing.lg};
 `;
 
 const Avatar = styled.div`
@@ -55,7 +55,7 @@ const Avatar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: ${props => props.theme.fontSizes['3xl']};
+  font-size: ${(props) => props.theme.fontSizes["3xl"]};
   font-weight: 600;
   color: white;
 `;
@@ -65,78 +65,80 @@ const CustomerDetails = styled.div`
 `;
 
 const CustomerName = styled.h3`
-  margin: 0 0 ${props => props.theme.spacing.sm} 0;
-  font-size: ${props => props.theme.fontSizes.xl};
+  margin: 0 0 ${(props) => props.theme.spacing.sm} 0;
+  font-size: ${(props) => props.theme.fontSizes.xl};
 `;
 
 const CustomerMeta = styled.div`
   display: flex;
-  gap: ${props => props.theme.spacing.md};
-  font-size: ${props => props.theme.fontSizes.sm};
+  gap: ${(props) => props.theme.spacing.md};
+  font-size: ${(props) => props.theme.fontSizes.sm};
   opacity: 0.9;
 `;
 
 const StatusBadge = styled(Badge)`
-  font-size: ${props => props.theme.fontSizes.sm};
-  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
+  font-size: ${(props) => props.theme.fontSizes.sm};
+  padding: ${(props) => props.theme.spacing.sm};
+  ${(props) => props.theme.spacing.md};
 `;
 
 const StatsGrid = styled(Grid)`
-  margin-bottom: ${props => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 
 const StatCard = styled(Card)`
   text-align: center;
-  padding: ${props => props.theme.spacing.lg};
+  padding: ${(props) => props.theme.spacing.lg};
   transition: transform 0.2s ease-in-out;
-  
+
   &:hover {
     transform: translateY(-2px);
   }
 `;
 
 const StatValue = styled.div`
-  font-size: ${props => props.theme.fontSizes['2xl']};
+  font-size: ${(props) => props.theme.fontSizes["2xl"]};
   font-weight: 700;
-  color: ${props => props.color || props.theme.colors.primary};
-  margin-bottom: ${props => props.theme.spacing.xs};
+  color: ${(props) => props.color || props.theme.colors.primary};
+  margin-bottom: ${(props) => props.theme.spacing.xs};
 `;
 
 const StatLabel = styled.div`
-  font-size: ${props => props.theme.fontSizes.sm};
-  color: ${props => props.theme.colors.gray[600]};
+  font-size: ${(props) => props.theme.fontSizes.sm};
+  color: ${(props) => props.theme.colors.gray[600]};
 `;
 
 const SectionTitle = styled.h3`
-  margin: ${props => props.theme.spacing.lg} 0 ${props => props.theme.spacing.md} 0;
-  color: ${props => props.theme.colors.gray[800]};
+  margin: ${(props) => props.theme.spacing.lg} 0
+    ${(props) => props.theme.spacing.md} 0;
+  color: ${(props) => props.theme.colors.gray[800]};
 `;
 
 const InfoGrid = styled(Grid)`
-  margin-bottom: ${props => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 
 const InfoCard = styled(Card)`
-  padding: ${props => props.theme.spacing.md};
+  padding: ${(props) => props.theme.spacing.md};
 `;
 
 const InfoTitle = styled.h4`
-  margin: 0 0 ${props => props.theme.spacing.sm} 0;
-  font-size: ${props => props.theme.fontSizes.md};
-  color: ${props => props.theme.colors.gray[700]};
+  margin: 0 0 ${(props) => props.theme.spacing.sm} 0;
+  font-size: ${(props) => props.theme.fontSizes.md};
+  color: ${(props) => props.theme.colors.gray[700]};
 `;
 
 const InfoContent = styled.div`
-  font-size: ${props => props.theme.fontSizes.sm};
-  color: ${props => props.theme.colors.gray[600]};
+  font-size: ${(props) => props.theme.fontSizes.sm};
+  color: ${(props) => props.theme.colors.gray[600]};
   line-height: 1.5;
 `;
 
 const ActionButtons = styled.div`
   display: flex;
-  gap: ${props => props.theme.spacing.md};
+  gap: ${(props) => props.theme.spacing.md};
   justify-content: center;
-  margin-top: ${props => props.theme.spacing.lg};
+  margin-top: ${(props) => props.theme.spacing.lg};
 `;
 
 const Customer360 = () => {
@@ -149,65 +151,73 @@ const Customer360 = () => {
 
   // 임시 고객 데이터
   const mockCustomer = {
-    id: 'CUST001',
-    name: '김철수',
-    phone: '010-1234-5678',
-    email: 'kim.cs@email.com',
+    id: "CUST001",
+    name: "김철수",
+    phone: "010-1234-5678",
+    email: "kim.cs@email.com",
     age: 32,
-    gender: 'male',
-    region: '서울특별시 강남구',
-    membership: 'gold',
-    status: 'active',
-    joinDate: '2022-03-15',
-    contractEnd: '2025-03-14',
-    plan: '5G 프리미엄',
-    device: '갤럭시 S23 Ultra',
+    gender: "male",
+    region: "서울특별시 강남구",
+    membership: "gold",
+    status: "active",
+    joinDate: "2022-03-15",
+    contractEnd: "2025-03-14",
+    plan: "5G 프리미엄",
+    device: "갤럭시 S23 Ultra",
     monthlyData: 15.2,
     monthlyCharge: 129000,
-    recentPurchase: '2024-01-10',
+    recentPurchase: "2024-01-10",
     totalSpent: 3870000,
     satisfaction: 4.2,
-    churnRisk: 'low',
-    preferredContact: 'sms',
-    lastContact: '2024-01-08',
+    churnRisk: "low",
+    preferredContact: "sms",
+    lastContact: "2024-01-08",
   };
 
   const menuItems = [
-    { id: 'dashboard', label: '대시보드', icon: '📊' },
-    { id: 'messages', label: '메시지 관리', icon: '💬' },
-    { id: 'campaigns', label: '캠페인', icon: '📢' },
-    { id: 'customers', label: '고객 관리', icon: '👥' },
-    { id: 'analytics', label: '분석', icon: '📈' },
+    { id: "dashboard", label: "대시보드", icon: "📊" },
+    { id: "messages", label: "메시지 관리", icon: "💬" },
+    { id: "campaigns", label: "캠페인", icon: "📢" },
+    { id: "customers", label: "고객 관리", icon: "👥" },
+    { id: "analytics", label: "분석", icon: "📈" },
   ];
 
   const handleMenuClick = (menuId) => {
-    if (menuId === 'dashboard') {
-      navigate('/dashboard');
-    } else if (menuId === 'customers') {
-      navigate('/dashboard');
+    if (menuId === "dashboard") {
+      navigate("/dashboard");
+    } else if (menuId === "customers") {
+      navigate("/dashboard");
     }
   };
 
   const generatePersonalizedMessage = () => {
     // 개인화된 메시지 생성
-    const message = `${customer.name} 고객님, ${customer.membersember === 'gold' ? '골드' : '프리미엄'} 회원님께 특별한 혜택을 준비했습니다. 현재 사용 중인 ${customer.plan} 요금제를 더욱 특별하게 이용하실 수 있는 기회입니다.`;
-    
-    navigate('/message/individual', { 
-      state: { 
+    const message = `${customer.name} 고객님, ${
+      customer.membersember === "gold" ? "골드" : "프리미엄"
+    } 회원님께 특별한 혜택을 준비했습니다. 현재 사용 중인 ${
+      customer.plan
+    } 요금제를 더욱 특별하게 이용하실 수 있는 기회입니다.`;
+
+    navigate("/message/individual", {
+      state: {
         customer: customer,
-        personalizedMessage: message 
-      } 
+        personalizedMessage: message,
+      },
     });
   };
 
   const viewUsageHistory = () => {
-    alert('이용 내역 페이지로 이동합니다.');
+    alert("이용 내역 페이지로 이동합니다.");
   };
 
   const recommendUpgrade = () => {
-    const recommendation = customer.plan === '5G 프리미엄' ? 
-      '프리미엄 플러스 요금제' : '5G 프리미엄 요금제';
-    alert(`${customer.name} 고객님께 ${recommendation} 업그레이드를 추천합니다.`);
+    const recommendation =
+      customer.plan === "5G 프리미엄"
+        ? "프리미엄 플러스 요금제"
+        : "5G 프리미엄 요금제";
+    alert(
+      `${customer.name} 고객님께 ${recommendation} 업그레이드를 추천합니다.`
+    );
   };
 
   useEffect(() => {
@@ -238,8 +248,8 @@ const Customer360 = () => {
             onLogout={logout}
             sidebarCollapsed={sidebarCollapsed}
             breadcrumbs={[
-              { label: '고객 관리', href: '/dashboard' },
-              { label: '고객 360도 뷰', active: true }
+              { label: "고객 관리", href: "/dashboard" },
+              { label: "고객 360도 뷰", active: true },
             ]}
           />
         }
@@ -270,8 +280,8 @@ const Customer360 = () => {
             onLogout={logout}
             sidebarCollapsed={sidebarCollapsed}
             breadcrumbs={[
-              { label: '고객 관리', href: '/dashboard' },
-              { label: '고객 360도 뷰', active: true }
+              { label: "고객 관리", href: "/dashboard" },
+              { label: "고객 360도 뷰", active: true },
             ]}
           />
         }
@@ -301,8 +311,8 @@ const Customer360 = () => {
           onLogout={logout}
           sidebarCollapsed={sidebarCollapsed}
           breadcrumbs={[
-            { label: '고객 관리', href: '/dashboard' },
-            { label: '고객 360도 뷰', active: true }
+            { label: "고객 관리", href: "/dashboard" },
+            { label: "고객 360도 뷰", active: true },
           ]}
         />
       }
@@ -311,7 +321,9 @@ const Customer360 = () => {
       <CustomerContainer>
         <CustomerHeader>
           <CustomerTitle>고객 360도 뷰</CustomerTitle>
-          <Button variant="primary" onClick={() => navigate(-1)}>← 뒤로가기</Button>
+          <Button variant="primary" onClick={() => navigate(-1)}>
+            ← 뒤로가기
+          </Button>
         </CustomerHeader>
 
         {/* 고객 기본 정보 */}
@@ -329,8 +341,10 @@ const Customer360 = () => {
               </CustomerDetails>
             </ProfileInfo>
             <div>
-              <StatusBadge variant={customer.status === 'active' ? 'success' : 'secondary'}>
-                {customer.status === 'active' ? '활성 고객' : '비활성 고객'}
+              <StatusBadge
+                variant={customer.status === "active" ? "success" : "secondary"}
+              >
+                {customer.status === "active" ? "활성 고객" : "비활성 고객"}
               </StatusBadge>
             </div>
           </ProfileHeader>
@@ -344,7 +358,9 @@ const Customer360 = () => {
             <StatLabel>만족도</StatLabel>
           </StatCard>
           <StatCard hover>
-            <StatValue color="#ffc107">{customer.monthlyCharge.toLocaleString()}원</StatValue>
+            <StatValue color="#ffc107">
+              {customer.monthlyCharge.toLocaleString()}원
+            </StatValue>
             <StatLabel>월 이용료</StatLabel>
           </StatCard>
           <StatCard hover>
@@ -352,7 +368,9 @@ const Customer360 = () => {
             <StatLabel>월 데이터 사용량</StatLabel>
           </StatCard>
           <StatCard hover>
-            <StatValue color="#6c757d">{customer.totalSpent.toLocaleString()}원</StatValue>
+            <StatValue color="#6c757d">
+              {customer.totalSpent.toLocaleString()}원
+            </StatValue>
             <StatLabel>총 이용금액</StatLabel>
           </StatCard>
         </StatsGrid>
@@ -366,12 +384,12 @@ const Customer360 = () => {
               <div>고객 ID: {customer.id}</div>
               <div>이름: {customer.name}</div>
               <div>나이: {customer.age}세</div>
-              <div>성별: {customer.gender === 'male' ? '남성' : '여성'}</div>
+              <div>성별: {customer.gender === "male" ? "남성" : "여성"}</div>
               <div>지역: {customer.region}</div>
               <div>이메일: {customer.email}</div>
             </InfoContent>
           </InfoCard>
-          
+
           <InfoCard>
             <InfoTitle>📱 서비스 정보</InfoTitle>
             <InfoContent>
@@ -383,7 +401,7 @@ const Customer360 = () => {
               <div>최근구매: {customer.recentPurchase}</div>
             </InfoContent>
           </InfoCard>
-          
+
           <InfoCard>
             <InfoTitle>📊 이용 패턴</InfoTitle>
             <InfoContent>
@@ -391,11 +409,21 @@ const Customer360 = () => {
               <div>월 이용료: {customer.monthlyCharge.toLocaleString()}원</div>
               <div>총 이용금액: {customer.totalSpent.toLocaleString()}원</div>
               <div>만족도: {customer.satisfaction}/5.0</div>
-              <div>이탈위험: {customer.churnRisk === 'low' ? '낮음' : customer.churnRisk === 'medium' ? '중간' : '높음'}</div>
-              <div>선호채널: {customer.preferredContact === 'sms' ? 'SMS' : '이메일'}</div>
+              <div>
+                이탈위험:{" "}
+                {customer.churnRisk === "low"
+                  ? "낮음"
+                  : customer.churnRisk === "medium"
+                  ? "중간"
+                  : "높음"}
+              </div>
+              <div>
+                선호채널:{" "}
+                {customer.preferredContact === "sms" ? "SMS" : "이메일"}
+              </div>
             </InfoContent>
           </InfoCard>
-          
+
           <InfoCard>
             <InfoTitle>🎯 추천 액션</InfoTitle>
             <InfoContent>
@@ -420,7 +448,6 @@ const Customer360 = () => {
             ⬆️ 업그레이드 추천
           </Button>
         </ActionButtons>
-
       </CustomerContainer>
     </Layout>
   );
