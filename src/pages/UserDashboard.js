@@ -211,7 +211,7 @@ const CampaignMeta = styled.div`
 
 const CampaignButton = styled.button`
   padding: 0.55rem 1.4rem;
-  border-radius: 9999px;
+  border-radius: 6px;
   border: none;
   background: #e60012;
   color: #ffffff;
@@ -377,7 +377,6 @@ const UserDashboard = ({ onMenuClick }) => {
                 <CampaignButton
                   onClick={() => handleNavigate("/message/segment")}
                 >
-                  <i className="fas fa-edit" />
                   메시지 생성
                 </CampaignButton>
               </CampaignItem>
