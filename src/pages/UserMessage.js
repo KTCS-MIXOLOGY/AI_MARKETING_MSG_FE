@@ -164,8 +164,7 @@ const UserMessage = () => {
             </CardIconWrapper>
             <CardTitle>세그먼트 메시지 생성</CardTitle>
             <CardDescription>
-              특정 고객 세그먼트를 대상으로 대량 메시지를 생성합니다. 타겟
-              고객군별 맞춤형 메시지를 한 번에 생성하세요.
+              특정 고객 세그먼트를 대상으로 대량 메시지를 생성
             </CardDescription>
             <CardFeatures>
               <CardFeature>다중 필터링으로 타겟 고객 선택</CardFeature>
@@ -180,8 +179,7 @@ const UserMessage = () => {
             </CardIconWrapper>
             <CardTitle>개인 메시지 생성</CardTitle>
             <CardDescription>
-              개별 고객에게 맞춤형 메시지를 생성합니다. 1:1 개인화된 마케팅
-              메시지를 만들어보세요.
+              개별 고객에게 맞춤형 1:1 메시지를 생성
             </CardDescription>
             <CardFeatures>
               <CardFeature>전화번호로 고객 검색</CardFeature>
