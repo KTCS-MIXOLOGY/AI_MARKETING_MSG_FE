@@ -125,17 +125,27 @@ const FilterLabel = styled.label`
 `;
 
 const FilterSelect = styled.select`
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
   border: 1px solid #d4d4d4;
   border-radius: 8px;
   font-size: 0.9375rem;
   background: #ffffff;
   transition: all 0.2s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23525252'%3E%3Cpath d='M4.427 6.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 6H4.604a.25.25 0 00-.177.427z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px;
 
   &:focus {
     outline: none;
     border-color: #e60012;
     box-shadow: 0 0 0 3px rgba(230, 0, 18, 0.1);
+  }
+
+  &:hover {
+    border-color: #a3a3a3;
   }
 `;
 
@@ -148,13 +158,14 @@ const ButtonGroup = styled.div`
 `;
 
 const Button = styled.button`
-  padding: 0.75rem 1.5rem;
+  padding: 0.35rem 0.8rem;
   border: none;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -168,7 +179,7 @@ const Button = styled.button`
   }
 
   i {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 `;
 
@@ -650,7 +661,6 @@ const UserHistory = () => {
           </StatCard>
         </StatsGrid>
 
-        {/* 필터 섹션 */}
         <FilterSection>
           <h3>
             <i className="fas fa-filter" /> 발송 이력 필터
