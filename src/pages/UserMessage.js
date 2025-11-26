@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import Layout from '../components/common/Layout';
-import Sidebar from '../components/common/Sidebar';
-import Header from '../components/common/Header';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import Layout from "../components/common/Layout";
+import Sidebar from "../components/common/Sidebar";
+import Header from "../components/common/Header";
 
 const Container = styled.div`
   display: flex;
@@ -49,7 +49,7 @@ const Card = styled.div`
   text-align: center;
   width: 300px;
   border: 2px solid transparent;
-  
+
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
@@ -76,36 +76,20 @@ const CardDescription = styled.p`
   margin: 0;
 `;
 
-const BackButton = styled.button`
-  margin-top: 32px;
-  padding: 12px 24px;
-  background: #e2e8f0;
-  color: #4a5568;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: #cbd5e0;
-  }
-`;
-
 const Message = () => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleSegmentClick = () => {
-    navigate('/message/segment');
+    navigate("/message/segment");
   };
 
   const handleIndividualClick = () => {
-    navigate('/message/individual');
+    navigate("/message/individual");
   };
 
   const handleBack = () => {
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   return (
@@ -126,30 +110,26 @@ const Message = () => {
           <Subtitle>생성할 메시지 유형을 선택하세요</Subtitle>
         </PageHeader>
 
-      <CardContainer>
-        <Card onClick={handleSegmentClick}>
-          <CardIcon>👥</CardIcon>
-          <CardTitle>세그먼트 메시지 생성</CardTitle>
-          <CardDescription>
-            특정 고객 세그먼트를 대상으로 대량 메시지를 생성합니다.
-            타겟 고객군별 맞춤형 메시지를 한 번에 생성하세요.
-          </CardDescription>
-        </Card>
+        <CardContainer>
+          <Card onClick={handleSegmentClick}>
+            <CardIcon>👥</CardIcon>
+            <CardTitle>세그먼트 메시지 생성</CardTitle>
+            <CardDescription>
+              특정 고객 세그먼트를 대상으로 대량 메시지를 생성합니다. 타겟
+              고객군별 맞춤형 메시지를 한 번에 생성하세요.
+            </CardDescription>
+          </Card>
 
-        <Card onClick={handleIndividualClick}>
-          <CardIcon>👤</CardIcon>
-          <CardTitle>개인 메시지 생성</CardTitle>
-          <CardDescription>
-            개별 고객에게 맞춤형 메시지를 생성합니다.
-            1:1 개인화된 마케팅 메시지를 만들어보세요.
-          </CardDescription>
-        </Card>
-      </CardContainer>
-
-      <BackButton onClick={handleBack}>
-        ← 대시보드로 돌아가기
-      </BackButton>
-    </Container>
+          <Card onClick={handleIndividualClick}>
+            <CardIcon>👤</CardIcon>
+            <CardTitle>개인 메시지 생성</CardTitle>
+            <CardDescription>
+              개별 고객에게 맞춤형 메시지를 생성합니다. 1:1 개인화된 마케팅
+              메시지를 만들어보세요.
+            </CardDescription>
+          </Card>
+        </CardContainer>
+      </Container>
     </Layout>
   );
 };
