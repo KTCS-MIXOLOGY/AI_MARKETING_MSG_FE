@@ -1,11 +1,8 @@
-// src/pages/UserHistory.js
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
-
-/* ====== 스타일 ====== */
 
 const HistoryContainer = styled.div`
   max-width: 1400px;
@@ -397,8 +394,6 @@ const DetailValue = styled.span`
   color: #171717;
   font-size: 0.9375rem;
 `;
-
-/* ====== 컴포넌트 ====== */
 
 const UserHistory = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -954,11 +949,7 @@ const UserHistory = () => {
                   </div>
                 </div>
               </ModalBody>
-              <ModalFooter>
-                <Button variant="secondary" onClick={closeModal}>
-                  닫기
-                </Button>
-              </ModalFooter>
+              <ModalFooter></ModalFooter>
             </>
           )}
         </Modal>

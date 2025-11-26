@@ -293,14 +293,12 @@ const UserSettings = () => {
             active={activeTab === "profile"}
             onClick={() => setActiveTab("profile")}
           >
-            <i className="fas fa-user"></i>
             개인 정보
           </Tab>
           <Tab
             active={activeTab === "help"}
             onClick={() => setActiveTab("help")}
           >
-            <i className="fas fa-question-circle"></i>
             도움말
           </Tab>
         </SettingsTabs>
