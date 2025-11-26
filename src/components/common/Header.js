@@ -1,147 +1,125 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useAuth } from '../../contexts/AuthContext';
+import React from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const HeaderContainer = styled.header`
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: ${props => props.sidebarCollapsed ? '60px' : '250px'};
-  height: 70px;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+  background: transparent;
+  border-bottom: none;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 ${props => props.theme.spacing.lg};
-  z-index: 99;
-  transition: left 0.3s ease-in-out;
-`;
-
-const HeaderLeft = styled.div`
-  display: flex;
-  align-items: center;
+  min-height: 50px;
+  margin-bottom: 1.4rem; /* 아래 콘텐츠와의 간격 */
 `;
 
 const HeaderRight = styled.div`
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.md};
-`;
-
-const ToggleButton = styled.button`
-  background: none;
-  border: none;
-  font-size: ${props => props.theme.fontSizes.xl};
-  cursor: pointer;
-  color: #4a5568;
-  padding: ${props => props.theme.spacing.xs};
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: #f7fafc;
-    color: ${props => props.theme.colors.primary};
-  }
-`;
-
-const Breadcrumb = styled.nav`
-  color: #718096;
-  font-size: ${props => props.theme.fontSizes.sm};
-  
-  & span {
-    margin: 0 ${props => props.theme.spacing.xs};
-  }
+  gap: 1rem;
 `;
 
 const UserInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.sm};
-  padding: ${props => props.theme.spacing.sm};
-  border-radius: 8px;
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #f5f5f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:hover .user-avatar {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(230, 0, 18, 0.4);
+  }
 `;
 
 const UserAvatar = styled.div`
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: ${props => props.theme.colors.primary};
-  color: white;
+  background: linear-gradient(135deg, #e60012 0%, #b8000e 100%);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: ${props => props.theme.fontSizes.sm};
-`;
-
-const UserDetails = styled.div`
-  text-align: left;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
 `;
 
 const UserName = styled.div`
   font-weight: 600;
-  color: #2d3748;
-  font-size: ${props => props.theme.fontSizes.sm};
-`;
-
-const UserRole = styled.div`
-  color: #718096;
-  font-size: ${props => props.theme.fontSizes.xs};
+  font-size: 0.9375rem;
+  color: #171717;
 `;
 
 const LogoutButton = styled.button`
-  background: #e53e3e;
-  color: white;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: #525252;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: ${props => props.theme.fontSizes.sm};
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
   &:hover {
-    background: #c53030;
-    transform: translateY(-1px);
+    background: #f5f5f5;
+    color: #171717;
+  }
+
+  i {
+    font-size: 0.875rem;
   }
 `;
 
-const Header = ({ sidebarCollapsed, onToggleSidebar, currentPage }) => {
+const Header = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    navigate("/login");
   };
 
-  const getUserInitials = () => {
-    return user?.name ? user.name.charAt(0) : 'U';
+  const getDisplayName = () => {
+    if (!user) return "사용자";
+    if (user.role === "admin") return `${user.name} 관리자`;
+    return `${user.name} 실행자`;
+  };
+
+  const getInitial = () => {
+    if (!user) return "U";
+    return user.name
+      ? user.name.charAt(0)
+      : user.role === "admin"
+      ? "관"
+      : "홍";
   };
 
   return (
-    <HeaderContainer sidebarCollapsed={sidebarCollapsed}>
-      <HeaderLeft>
-        <ToggleButton onClick={onToggleSidebar}>
-          {sidebarCollapsed ? '→' : '←'}
-        </ToggleButton>
-        <Breadcrumb>
-          <span>홈</span>
-          {currentPage && (<>
-            <span></span>
-            <span>{currentPage}</span>
-          </>)}
-        </Breadcrumb>
-      </HeaderLeft>
+    <HeaderContainer>
       <HeaderRight>
         <UserInfo>
-          <UserAvatar>{getUserInitials()}</UserAvatar>
-          <UserDetails>
-            <UserName>{user?.name || '사용자'}</UserName>
-            <UserRole>{user?.role === 'admin' ? '관리자' : '일반 사용자'}</UserRole>
-          </UserDetails>
+          <UserAvatar className="user-avatar">{getInitial()}</UserAvatar>
+          <UserName>{getDisplayName()}</UserName>
         </UserInfo>
+
         <LogoutButton onClick={handleLogout}>
+          <i className="fas fa-sign-out-alt"></i>
           로그아웃
         </LogoutButton>
       </HeaderRight>
