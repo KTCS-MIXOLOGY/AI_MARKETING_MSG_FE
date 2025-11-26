@@ -76,8 +76,8 @@ const Sidebar = ({ activeMenu }) => {
   const adminMenuItems = [
     {
       id: "dashboard",
-      label: "대시보드",
-      icon: "fa-th-large",
+      label: "홈",
+      icon: "fa-home",
       path: "/admin",
     },
     {
