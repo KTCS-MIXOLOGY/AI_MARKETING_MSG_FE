@@ -153,13 +153,7 @@ const UserMessage = () => {
     >
       <Container>
         <PageHeader>
-          <PageTitle>
-            <i
-              className="fas fa-envelope"
-              style={{ marginRight: "0.5rem", color: "#E60012" }}
-            ></i>
-            메시지 생성
-          </PageTitle>
+          <PageTitle>메시지 생성</PageTitle>
           <PageDescription>생성할 메시지 유형을 선택하세요</PageDescription>
         </PageHeader>
 
