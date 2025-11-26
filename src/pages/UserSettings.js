@@ -7,9 +7,9 @@ import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
 
 const SettingsContainer = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
   padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 `;
 
 const SettingsTabs = styled.div`
