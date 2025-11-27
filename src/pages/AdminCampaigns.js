@@ -592,7 +592,7 @@ const AdminCampaigns = () => {
           </FilterGroup>
 
           <NewCampaignButton onClick={openCreateModal}>
-            <i className="fas fa-plus"></i>새 캠페인 생성
+            <i className="fas fa-plus"></i>캠페인 생성
           </NewCampaignButton>
         </FilterBar>
 
