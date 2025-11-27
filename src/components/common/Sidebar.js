@@ -76,9 +76,9 @@ const Sidebar = ({ activeMenu }) => {
   const adminMenuItems = [
     {
       id: "dashboard",
-      label: "대시보드",
-      icon: "fa-th-large",
-      path: "/admin/dashboard",
+      label: "홈",
+      icon: "fa-home",
+      path: "/admin",
     },
     {
       id: "campaigns",
@@ -106,9 +106,15 @@ const Sidebar = ({ activeMenu }) => {
     },
     {
       id: "logs",
-      label: "로그 분석",
+      label: "로그 관리",
       icon: "fa-chart-line",
       path: "/admin/messages",
+    },
+    {
+      id: "settings",
+      label: "설정",
+      icon: "fa-cog",
+      path: "/admin/settings",
     },
   ];
 

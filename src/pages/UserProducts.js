@@ -4,8 +4,6 @@ import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
 
-/* ✅ 캠페인 페이지랑 동일한 레이아웃/테이블 스타일 */
-
 const Container = styled.div`
   padding: 2rem;
   max-width: 1400px;

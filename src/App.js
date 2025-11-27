@@ -18,6 +18,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminCampaigns from "./pages/AdminCampaigns";
 import AdminProducts from "./pages/AdminProducts";
 import AdminSegments from "./pages/AdminSegments";
+import AdminSettings from "./pages/AdminSettings";
 import AdminMessages from "./pages/AdminMessages";
 import PrivateRoute from "./components/PrivateRoute";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -96,7 +97,14 @@ function App() {
               </PrivateRoute>
             }
           />
-
+          <Route
+            path="/admin/settings"
+            element={
+              <PrivateRoute>
+                <AdminSettings />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/message/segment"
             element={
