@@ -444,7 +444,6 @@ const UserMsgSeg = () => {
     region: [],
     grade: [],
     lastPurchase: [],
-    plan: [],
   });
 
   // Selections
@@ -768,32 +767,6 @@ const UserMsgSeg = () => {
                         }
                       />
                       {period}
-                    </CheckboxLabel>
-                  ))}
-                </CheckboxGroup>
-              </FilterGroup>
-
-              {/* Plan */}
-              <FilterGroup>
-                <FilterTitle>
-                  <i className="fas fa-sim-card"></i>
-                  요금제
-                </FilterTitle>
-                <CheckboxGroup>
-                  {[
-                    "전체",
-                    "5G 프리미어 플러스",
-                    "5G 프리미어 에센셜",
-                    "5G 슬림",
-                    "LTE",
-                  ].map((plan) => (
-                    <CheckboxLabel key={plan}>
-                      <input
-                        type="checkbox"
-                        checked={filters.plan.includes(plan)}
-                        onChange={() => handleFilterChange("plan", plan)}
-                      />
-                      {plan}
                     </CheckboxLabel>
                   ))}
                 </CheckboxGroup>

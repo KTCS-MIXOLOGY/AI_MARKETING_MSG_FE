@@ -417,7 +417,6 @@ const UserHistory = () => {
     gender: "",
     region: "",
     membership: "",
-    plan: "",
     period: "all",
   });
 
@@ -517,7 +516,6 @@ const UserHistory = () => {
       gender: "",
       region: "",
       membership: "",
-      plan: "",
       period: "all",
     };
     setFilters(reset);
@@ -561,9 +559,6 @@ const UserHistory = () => {
       filtered = filtered.filter(
         (m) => m.targetMembership === filters.membership
       );
-    }
-    if (filters.plan) {
-      filtered = filtered.filter((m) => m.targetPlan === filters.plan);
     }
 
     setFilteredMessages(filtered);
@@ -757,25 +752,10 @@ const UserHistory = () => {
                 }
               >
                 <option value="">전체</option>
-                <option value="브론즈">🥉 브론즈</option>
-                <option value="실버">🥈 실버</option>
-                <option value="골드">🥇 골드</option>
-                <option value="플래티넘">💎 플래티넘</option>
-              </FilterSelect>
-            </FilterGroup>
-
-            <FilterGroup>
-              <FilterLabel>요금제</FilterLabel>
-              <FilterSelect
-                value={filters.plan}
-                onChange={(e) => handleFilterChange("plan", e.target.value)}
-              >
-                <option value="">전체</option>
-                <option value="5G 프리미엄">5G 프리미엄</option>
-                <option value="5G 표준">5G 표준</option>
-                <option value="LTE">LTE</option>
-                <option value="알뜰폰">알뜰폰</option>
-                <option value="기업">기업 요금제</option>
+                <option value="브론즈">브론즈</option>
+                <option value="실버">실버</option>
+                <option value="골드">골드</option>
+                <option value="플래티넘">플래티넘</option>
               </FilterSelect>
             </FilterGroup>
 
