@@ -139,7 +139,7 @@ const Sidebar = ({ activeMenu }) => {
     },
     {
       id: "history",
-      label: "발송 이력",
+      label: "생성 이력",
       icon: "fa-history",
       path: "/history",
     },
