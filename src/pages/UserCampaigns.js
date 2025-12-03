@@ -403,6 +403,7 @@ const Campaigns = () => {
             type: campaign.type,
             status: status,
             startDate: campaign.startDate,
+            description: campaign.description,
             endDate: campaign.endDate,
             targetCount: campaign.targetCustomerCount || 0,
             createdBy: campaign.createdBy || "관리자",
