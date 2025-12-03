@@ -43,6 +43,12 @@ export const AuthProvider = ({ children }) => {
       if (response.data && response.data.success) {
         const { accessToken, user: userData } = response.data.data;
 
+        // 사용자 상태 확인 (PENDING 상태 체크)
+        if (userData.status === "PENDING") {
+          toast.error("회원 권한이 필요합니다. 관리자 승인을 기다려주세요.");
+          return { success: false, error: "회원 권한이 필요합니다." };
+        }
+
         // 토큰 및 사용자 정보 저장
         localStorage.setItem("token", accessToken);
         localStorage.setItem("user", JSON.stringify(userData));
@@ -64,7 +70,20 @@ export const AuthProvider = ({ children }) => {
         throw new Error(response.data?.message || "로그인에 실패했습니다.");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
+      // 에러 메시지 개선
+      let errorMessage = error.response?.data?.message || error.message;
+
+      // "An unexpected error occurred" 메시지를 한글로 변환
+      if (errorMessage === "An unexpected error occurred" || errorMessage.includes("unexpected error")) {
+        errorMessage = "회원 권한이 필요합니다. 관리자 승인을 기다려주세요.";
+      }
+
+      // 권한 관련 에러 메시지 처리
+      if (errorMessage.includes("PENDING") || errorMessage.includes("pending") ||
+          errorMessage.includes("승인") || errorMessage.includes("권한")) {
+        errorMessage = "회원 권한이 필요합니다. 관리자 승인을 기다려주세요.";
+      }
+
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }

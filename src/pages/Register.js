@@ -217,8 +217,8 @@ const Register = () => {
     confirmPassword: "",
     name: "",
     email: "",
-    department: "",
-    role: "user",
+    phone: "",
+    role: "EXECUTOR",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -253,21 +253,32 @@ const Register = () => {
 
     if (!formData.username.trim()) {
       newErrors.username = "아이디를 입력해주세요.";
+    } else if (formData.username.length < 4 || formData.username.length > 50) {
+      newErrors.username = "아이디는 4~50자 사이여야 합니다.";
     }
+
     if (!formData.password.trim()) {
       newErrors.password = "비밀번호를 입력해주세요.";
+    } else if (!/^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
+      newErrors.password = "비밀번호는 8자 이상, 영문 소문자, 숫자, 특수문자를 포함해야 합니다.";
     }
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
     }
+
     if (!formData.name.trim()) {
       newErrors.name = "이름을 입력해주세요.";
     }
+
     if (!formData.email.trim()) {
       newErrors.email = "이메일을 입력해주세요.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "유효한 이메일 주소를 입력해주세요.";
     }
-    if (!formData.department.trim()) {
-      newErrors.department = "부서를 선택해주세요.";
+
+    if (formData.phone && !/^010-\d{4}-\d{4}$/.test(formData.phone)) {
+      newErrors.phone = "전화번호 형식이 올바르지 않습니다. (010-XXXX-XXXX)";
     }
 
     setErrors(newErrors);
@@ -280,30 +291,30 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const result = await register(formData);
+      // Backend API 요청에 맞는 형식으로 데이터 준비
+      const registerData = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        phone: formData.phone || null,
+        role: formData.role,
+      };
+
+      const result = await register(registerData);
       if (result.success) {
         setIsSuccess(true);
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+        // AuthContext에서 이미 navigate 처리하므로 여기서는 제거
       } else {
         setErrors({ submit: result.error || "회원가입에 실패했습니다." });
       }
     } catch (error) {
-      setErrors({ submit: "회원가입에 실패했습니다." });
+      setErrors({ submit: error.response?.data?.message || "회원가입에 실패했습니다." });
     } finally {
       setLoading(false);
     }
   };
 
-  const departments = [
-    { value: "", label: "부서를 선택하세요" },
-    { value: "마케팅팀", label: "마케팅팀" },
-    { value: "영업팀", label: "영업팅" },
-    { value: "고객관리팀", label: "고객관리팀" },
-    { value: "관리팀", label: "관리팀" },
-    { value: "기술팀", label: "기술팀" },
-  ];
 
   if (isSuccess) {
     return (
@@ -318,8 +329,9 @@ const Register = () => {
           </RedHeader>
           <FormContainer>
             <SuccessMessage>
-              회원가입이 성공적으로 완료되었습니다! 2초 후 로그인 페이지로
-              이동합니다.
+              회원가입이 완료되었습니다. 관리자 승인 후 로그인 가능합니다.
+              <br />
+              2초 후 로그인 페이지로 이동합니다.
             </SuccessMessage>
           </FormContainer>
         </RegisterCard>
@@ -348,15 +360,15 @@ const Register = () => {
               </Label>
               <RoleSelection>
                 <RoleCard
-                  selected={formData.role === "admin"}
-                  onClick={() => handleRoleSelect("admin")}
+                  selected={formData.role === "ADMIN"}
+                  onClick={() => handleRoleSelect("ADMIN")}
                 >
                   <RoleTitle>관리자</RoleTitle>
                   <RoleDesc>캠페인, 상품, 권한 관리</RoleDesc>
                 </RoleCard>
                 <RoleCard
-                  selected={formData.role === "user"}
-                  onClick={() => handleRoleSelect("user")}
+                  selected={formData.role === "EXECUTOR"}
+                  onClick={() => handleRoleSelect("EXECUTOR")}
                 >
                   <RoleTitle>실행자</RoleTitle>
                   <RoleDesc>메시지 생성 및 발송</RoleDesc>
@@ -440,6 +452,20 @@ const Register = () => {
                 value={formData.email}
                 onChange={handleChange}
                 error={errors.email}
+                disabled={loading}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label htmlFor="phone">전화번호</Label>
+              <StyledInput
+                id="phone"
+                name="phone"
+                type="text"
+                placeholder="010-1234-5678"
+                value={formData.phone}
+                onChange={handleChange}
+                error={errors.phone}
                 disabled={loading}
               />
             </FormGroup>
