@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
+import { usersAPI } from "../services/api";
 
 const SettingsContainer = styled.div`
   padding: 2rem;
@@ -232,15 +234,53 @@ const UserSettings = () => {
   const { user, logout } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [loading, setLoading] = useState(true);
+  const [userDetail, setUserDetail] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: user?.name || "홍길동",
-    email: user?.email || "hong@kt.com",
-    phone: "010-1234-5678",
+    name: "",
+    email: "",
+    phone: "",
+    department: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+  // 사용자 상세 정보 조회
+  useEffect(() => {
+    if (user?.userId) {
+      fetchUserDetail();
+    }
+  }, [user?.userId]);
+
+  const fetchUserDetail = async () => {
+    try {
+      setLoading(true);
+      const response = await usersAPI.getUser(user.userId);
+
+      if (response?.data?.success && response?.data?.data) {
+        const userData = response.data.data;
+        setUserDetail(userData);
+        setFormData({
+          name: userData.name || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          department: userData.department || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "사용자 정보를 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to fetch user detail:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -250,22 +290,64 @@ const UserSettings = () => {
     }));
   };
 
-  const handleSaveProfile = () => {
-    alert("프로필이 저장되었습니다.");
+  const handleSaveProfile = async () => {
+    try {
+      const updateData = {
+        email: formData.email,
+        phone: formData.phone,
+        department: formData.department,
+      };
+
+      const response = await usersAPI.updateUser(user.userId, updateData);
+
+      if (response?.data?.success) {
+        toast.success("프로필이 성공적으로 저장되었습니다.");
+        await fetchUserDetail(); // 최신 정보 다시 가져오기
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "프로필 저장에 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to update profile:", error);
+    }
   };
 
-  const handleChangePassword = () => {
-    if (formData.newPassword !== formData.confirmPassword) {
-      alert("새 비밀번호가 일치하지 않습니다.");
+  const handleChangePassword = async () => {
+    if (!formData.currentPassword || !formData.newPassword) {
+      toast.error("현재 비밀번호와 새 비밀번호를 입력해주세요.");
       return;
     }
-    alert("비밀번호가 변경되었습니다.");
-    setFormData((prev) => ({
-      ...prev,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    }));
+
+    if (formData.newPassword.length < 6) {
+      toast.error("새 비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    try {
+      // TODO: 비밀번호 변경 API가 백엔드에 구현되면 연결
+      // await authAPI.changePassword({
+      //   currentPassword: formData.currentPassword,
+      //   newPassword: formData.newPassword,
+      // });
+
+      toast.info("비밀번호 변경 기능은 준비 중입니다.");
+      setFormData((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to change password:", error);
+    }
   };
 
   const handleLogout = () => {
@@ -311,26 +393,58 @@ const UserSettings = () => {
               사용자 정보
             </SectionTitle>
 
-            <InfoCard>
-              <InfoRow>
-                <InfoLabel>이름</InfoLabel>
-                <InfoValue>{user?.name || "홍길동"}</InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>이메일</InfoLabel>
-                <InfoValue>{user?.email || "hong@kt.com"}</InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>역할</InfoLabel>
-                <InfoValue>
-                  {user?.role === "admin" ? "관리자" : "실행자"}
-                </InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>가입일</InfoLabel>
-                <InfoValue>2024-01-15</InfoValue>
-              </InfoRow>
-            </InfoCard>
+            {loading ? (
+              <InfoCard>
+                <p style={{ textAlign: "center", color: "#737373" }}>
+                  로딩 중...
+                </p>
+              </InfoCard>
+            ) : userDetail ? (
+              <InfoCard>
+                <InfoRow>
+                  <InfoLabel>사용자명</InfoLabel>
+                  <InfoValue>{userDetail.username || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>이름</InfoLabel>
+                  <InfoValue>{userDetail.name || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>이메일</InfoLabel>
+                  <InfoValue>{userDetail.email || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>전화번호</InfoLabel>
+                  <InfoValue>{userDetail.phone || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>부서</InfoLabel>
+                  <InfoValue>{userDetail.department || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>역할</InfoLabel>
+                  <InfoValue>
+                    {userDetail.role === "ADMIN" ? "관리자" : userDetail.role === "EXECUTOR" ? "실행자" : userDetail.role}
+                  </InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>상태</InfoLabel>
+                  <InfoValue>
+                    {userDetail.status === "APPROVED" ? "승인됨" : userDetail.status === "PENDING" ? "대기중" : userDetail.status === "REJECTED" ? "거부됨" : userDetail.status}
+                  </InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>가입일</InfoLabel>
+                  <InfoValue>{userDetail.createdAt?.split("T")[0] || "-"}</InfoValue>
+                </InfoRow>
+              </InfoCard>
+            ) : (
+              <InfoCard>
+                <p style={{ textAlign: "center", color: "#737373" }}>
+                  사용자 정보를 불러올 수 없습니다.
+                </p>
+              </InfoCard>
+            )}
           </SettingsSection>
 
           <SettingsSection>
@@ -345,8 +459,8 @@ const UserSettings = () => {
                 type="text"
                 name="name"
                 value={formData.name}
-                onChange={handleInputChange}
-                placeholder="이름을 입력하세요"
+                disabled
+                placeholder="이름은 수정할 수 없습니다"
               />
             </FormGroup>
 
@@ -362,13 +476,24 @@ const UserSettings = () => {
             </FormGroup>
 
             <FormGroup>
-              <FormLabel>전화번호</FormLabel>
+              <FormLabel>전화번호 (010-1234-5678 형식)</FormLabel>
               <FormInput
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="전화번호를 입력하세요"
+                placeholder="010-1234-5678"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>부서</FormLabel>
+              <FormInput
+                type="text"
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                placeholder="부서명을 입력하세요"
               />
             </FormGroup>
 
