@@ -218,6 +218,7 @@ const Register = () => {
     name: "",
     email: "",
     phone: "",
+    department: "",
     role: "EXECUTOR",
   });
   const [errors, setErrors] = useState({});
@@ -281,6 +282,10 @@ const Register = () => {
       newErrors.phone = "전화번호 형식이 올바르지 않습니다. (010-XXXX-XXXX)";
     }
 
+    if (!formData.department.trim()) {
+      newErrors.department = "부서를 입력해주세요.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -298,6 +303,7 @@ const Register = () => {
         password: formData.password,
         name: formData.name,
         phone: formData.phone || null,
+        department: formData.department,
         role: formData.role,
       };
 
@@ -466,6 +472,22 @@ const Register = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 error={errors.phone}
+                disabled={loading}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label htmlFor="department">
+                부서 <span className="required">*</span>
+              </Label>
+              <StyledInput
+                id="department"
+                name="department"
+                type="text"
+                placeholder="부서명을 입력하세요"
+                value={formData.department}
+                onChange={handleChange}
+                error={errors.department}
                 disabled={loading}
               />
             </FormGroup>
