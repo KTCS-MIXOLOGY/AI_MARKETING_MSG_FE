@@ -108,19 +108,24 @@ export const customersAPI = {
   // getCustomerUsage: (customerId) => api.get(`/executor/customers/${customerId}/usage`),
 };
 
-// Segments API (EXECUTOR)
+// Segments API (Admin & EXECUTOR)
 export const segmentsAPI = {
-  getSegments: (params = {}) => api.get('/executor/segments', { params }),
-  getSegment: (id) => api.get(`/executor/segments/${id}`),
+  // Admin API
+  getSegments: (params = {}) => api.get('/admin/customer-segments', { params }),
+  getSegment: (id) => api.get(`/admin/customer-segments/${id}`),
+
+  // Executor API (추후 사용)
+  // getExecutorSegments: (params = {}) => api.get('/executor/segments', { params }),
+  // getExecutorSegment: (id) => api.get(`/executor/segments/${id}`),
 
   // 고객 세그먼트 필터링 기반 고객 수 계산
   getSegmentCustomerCount: (filters) => api.post('/executor/segments/count', filters),
 
   // 아래 API들은 Backend에 미구현 - 추후 개발 필요
-  // createSegment: (segmentData) => api.post('/executor/segments', segmentData),
-  // updateSegment: (id, segmentData) => api.put(`/executor/segments/${id}`, segmentData),
-  // deleteSegment: (id) => api.delete(`/executor/segments/${id}`),
-  // getSegmentCustomers: (id) => api.get(`/executor/segments/${id}/customers`),
+  // createSegment: (segmentData) => api.post('/admin/customer-segments', segmentData),
+  // updateSegment: (id, segmentData) => api.put(`/admin/customer-segments/${id}`, segmentData),
+  // deleteSegment: (id) => api.delete(`/admin/customer-segments/${id}`),
+  // getSegmentCustomers: (id) => api.get(`/admin/customer-segments/${id}/customers`),
 };
 
 // Messages API (EXECUTOR)
