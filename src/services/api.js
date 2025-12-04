@@ -63,9 +63,9 @@ export const usersAPI = {
   getUsers: (params = {}) => api.get('/admin/users', { params }),
   getUser: (id) => api.get(`/admin/users/${id}`),
   createUser: (userData) => api.post('/admin/users', userData),
-  updateUser: (id, userData) => api.put(`/admin/users/${id}`, userData),
+  updateUser: (id, userData) => api.patch(`/admin/users/${id}`, userData),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
-  approveUser: (id) => api.put(`/admin/users/${id}/approve`),
+  approveUser: (id, role) => api.patch(`/admin/users/${id}/approve`, { role }),
   rejectUser: (id) => api.put(`/admin/users/${id}/reject`),
 };
 
