@@ -1,196 +1,236 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import Layout from '../components/common/Layout';
-import Sidebar from '../components/common/Sidebar';
-import Header from '../components/common/Header';
+import React, { useState } from "react";
+import styled from "styled-components";
+import Layout from "../components/common/Layout";
+import Sidebar from "../components/common/Sidebar";
+import Header from "../components/common/Header";
 
 const Container = styled.div`
-  padding: 24px;
-  background: white;
-  min-height: calc(100vh - 70px);
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 `;
+
+/* 상단 헤더 */
 
 const PageHeader = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const PageTitle = styled.h1`
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+`;
+
+/* 필터 바 */
+
+const FilterBar = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 24px;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
 `;
 
-const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a202c;
-  margin: 0;
-`;
-
-const SearchBar = styled.div`
+const FilterGroup = styled.div`
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 `;
 
-const SearchInput = styled.input`
-  padding: 10px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  width: 300px;
-  
+const Select = styled.select`
+  min-width: 180px;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9375rem;
+  color: #374151;
+  background-color: #ffffff;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  background-size: 10px 6px;
+
   &:focus {
-    outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    border-color: #e60012;
+    box-shadow: 0 0 0 3px rgba(230, 0, 18, 0.08);
   }
 `;
 
-const Button = styled.button`
-  padding: 10px 20px;
-  background: ${props => props.variant === 'primary' ? '#3182ce' : '#e2e8f0'};
-  color: ${props => props.variant === 'primary' ? 'white' : '#4a5568'};
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${props => props.variant === 'primary' ? '#2c5282' : '#cbd5e0'};
-  }
+/* 테이블 */
+
+const TableContainer = styled.div`
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+`;
+
+const Thead = styled.thead`
+  background: #f9fafb;
 `;
 
 const Th = styled.th`
-  background: #f7fafc;
-  padding: 16px;
+  padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: #4a5568;
-  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+`;
+
+const Tbody = styled.tbody``;
+
+const Tr = styled.tr`
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f3f4f6;
+  }
 `;
 
 const Td = styled.td`
-  padding: 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #2d3748;
+  padding: 1.25rem 1rem;
+  font-size: 0.9375rem;
+  color: #1a1a1a;
+  white-space: nowrap;
 `;
 
-const Tr = styled.tr`
-  &:hover {
-    background: #f8fafc;
-  }
-`;
+/* 상태 뱃지 */
 
 const StatusBadge = styled.span`
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  background: ${props => {
+  background: ${(props) => {
     switch (props.status) {
-      case 'active': return '#d4edda';
-      case 'pending': return '#fff3cd';
-      case 'inactive': return '#f8d7da';
-      default: return '#fff3cd';
+      case "active":
+        return "#D1F2D8"; // 초록
+      case "pending":
+        return "#D6E9F8"; // 파랑
+      case "inactive":
+        return "#FADADD"; // 분홍
+      default:
+        return "#F3F4F6";
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.status) {
-      case 'active': return '#155724';
-      case 'pending': return '#856404';
-      case 'inactive': return '#721c24';
-      default: return '#856404';
+      case "active":
+        return "#2E7D32";
+      case "pending":
+        return "#1565C0";
+      case "inactive":
+        return "#C2185B";
+      default:
+        return "#4B5563";
     }
   }};
 `;
 
-const RoleBadge = styled.span`
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  background: #e6fffa;
-  color: #234e52;
+/* 빈 상태 */
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+`;
+
+const EmptyIcon = styled.i`
+  font-size: 3rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+`;
+
+const EmptyText = styled.p`
+  font-size: 1rem;
+  margin: 0;
 `;
 
 const AdminUsers = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [deptFilter, setDeptFilter] = useState("all");
 
-  // Mock user data
   const users = [
     {
       id: 1,
-      name: '김관리',
-      email: 'admin@ktcs.com',
-      role: 'admin',
-      status: 'active',
-      joinDate: '2024-01-15',
-      lastLogin: '2024-11-11',
-      department: 'IT본부'
+      name: "김관식",
+      email: "admin@ktcs.com",
+      status: "active",
+      joinDate: "2024-01-15",
+      lastLogin: "2024-11-11",
+      department: "IT본부",
+      lastSentAt: "2024-11-10",
     },
     {
       id: 2,
-      name: '이마케터',
-      email: 'marketer@ktcs.com',
-      role: 'user',
-      status: 'active',
-      joinDate: '2024-02-20',
-      lastLogin: '2024-11-10',
-      department: '마케팅팀'
+      name: "이마케터",
+      email: "marketer@ktcs.com",
+      status: "active",
+      joinDate: "2024-02-20",
+      lastLogin: "2024-11-10",
+      department: "마케팅팀",
+      lastSentAt: "2024-11-09",
     },
     {
       id: 3,
-      name: '박분석',
-      email: 'analyst@ktcs.com',
-      role: 'user',
-      status: 'pending',
-      joinDate: '2024-09-01',
-      lastLogin: '-',
-      department: 'CRM팀'
+      name: "박분석",
+      email: "analyst@ktcs.com",
+      status: "pending",
+      joinDate: "2024-09-01",
+      lastLogin: "2025-09-01",
+      department: "CRM팀",
+      lastSentAt: "2025-08-30",
     },
     {
       id: 4,
-      name: '최고객',
-      email: 'choi@ktcs.com',
-      role: 'user',
-      status: 'inactive',
-      joinDate: '2023-12-10',
-      lastLogin: '2024-10-25',
-      department: '고객경험팀'
-    }
+      name: "최고객",
+      email: "choi@ktcs.com",
+      status: "inactive",
+      joinDate: "2023-12-10",
+      lastLogin: "2024-10-25",
+      department: "고객경험팀",
+      lastSentAt: "2024-08-30",
+    },
   ];
 
-  const filteredUsers = users.filter(user =>
-    user.name.includes(searchTerm) ||
-    user.email.includes(searchTerm) ||
-    user.department.includes(searchTerm)
-  );
+  const departments = Array.from(new Set(users.map((u) => u.department)));
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'active': return '활성';
-      case 'pending': return '대기';
-      case 'inactive': return '비활성';
-      default: return status;
+      case "active":
+        return "활성";
+      case "pending":
+        return "대기";
+      case "inactive":
+        return "비활성";
+      default:
+        return status;
     }
   };
 
-  const getRoleText = (role) => {
-    return role === 'admin' ? '관리자' : '사용자';
-  };
-
-  const handleSearch = () => {
-    console.log('Searching for:', searchTerm);
-  };
+  const filteredUsers = users.filter((user) => {
+    const statusOk =
+      statusFilter === "all" ? true : user.status === statusFilter;
+    const deptOk = deptFilter === "all" ? true : user.department === deptFilter;
+    return statusOk && deptOk;
+  });
 
   return (
     <Layout
@@ -206,53 +246,80 @@ const AdminUsers = () => {
     >
       <Container>
         <PageHeader>
-          <Title>회원 관리</Title>
+          <PageTitle>회원 관리</PageTitle>
         </PageHeader>
 
-      <SearchBar>
-        <SearchInput
-          type="text"
-          placeholder="이름, 이메일, 부서로 검색"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Button variant="primary" onClick={handleSearch}>검색</Button>
-        <Button onClick={() => setSearchTerm('')}>초기화</Button>
-      </SearchBar>
+        {/* 상태 / 부서 필터 */}
+        <FilterBar>
+          <FilterGroup>
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">전체 상태</option>
+              <option value="active">활성</option>
+              <option value="pending">대기</option>
+              <option value="inactive">비활성</option>
+            </Select>
 
-      <Table>
-        <thead>
-          <tr>
-            <Th>이름</Th>
-            <Th>이메일</Th>
-            <Th>역할</Th>
-            <Th>부서</Th>
-            <Th>가입일</Th>
-            <Th>마지막 로그인</Th>
-            <Th>상태</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map(user => (
-            <Tr key={user.id}>
-              <Td>{user.name}</Td>
-              <Td>{user.email}</Td>
-              <Td>
-                <RoleBadge>{getRoleText(user.role)}</RoleBadge>
-              </Td>
-              <Td>{user.department}</Td>
-              <Td>{user.joinDate}</Td>
-              <Td>{user.lastLogin}</Td>
-              <Td>
-                <StatusBadge status={user.status}>
-                  {getStatusText(user.status)}
-                </StatusBadge>
-              </Td>
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
-    </Container>
+            <Select
+              value={deptFilter}
+              onChange={(e) => setDeptFilter(e.target.value)}
+            >
+              <option value="all">전체 부서</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </Select>
+          </FilterGroup>
+        </FilterBar>
+
+        <TableContainer>
+          <Table>
+            <Thead>
+              <tr>
+                <Th>이름</Th>
+                <Th>이메일</Th>
+                <Th>부서</Th>
+                <Th>가입일</Th>
+                <Th>마지막 로그인</Th>
+                <Th>최근 발송일</Th>
+                <Th>상태</Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <Tr key={user.id}>
+                    <Td>{user.name}</Td>
+                    <Td>{user.email}</Td>
+                    <Td>{user.department}</Td>
+                    <Td>{user.joinDate}</Td>
+                    <Td>{user.lastLogin}</Td>
+                    <Td>{user.lastSentAt}</Td>
+                    <Td>
+                      <StatusBadge status={user.status}>
+                        {getStatusText(user.status)}
+                      </StatusBadge>
+                    </Td>
+                  </Tr>
+                ))
+              ) : (
+                <tr>
+                  <Td colSpan={7}>
+                    <EmptyState>
+                      <EmptyIcon className="fas fa-search" />
+                      <EmptyText>조건에 맞는 회원이 없습니다.</EmptyText>
+                    </EmptyState>
+                  </Td>
+                </tr>
+              )}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </Container>
     </Layout>
   );
 };

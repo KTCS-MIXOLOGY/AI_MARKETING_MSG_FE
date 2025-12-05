@@ -1,224 +1,275 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { useAuth } from '../contexts/AuthContext';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
-import Select from '../components/common/Select';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
+import Input from "../components/common/Input";
+import Button from "../components/common/Button";
+import Card from "../components/common/Card";
+import Select from "../components/common/Select";
 
 const RegisterContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f8fafc;
-  padding: ${props => props.theme.spacing.lg};
+  background: #2d2d2d;
+  padding: 2rem;
 `;
 
 const RegisterCard = styled(Card)`
   width: 100%;
-  max-width: 500px;
+  max-width: 470px;
   margin: 0 auto;
-  text-align: center;
-  background: white;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+`;
+
+const RedHeader = styled.div`
+  background: #e60012;
+  padding: 2rem 2rem 2.5rem;
+  text-align: center;
+  color: #ffffff;
 `;
 
 const Logo = styled.div`
-  font-size: ${props => props.theme.fontSizes['3xl']};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  color: ${props => props.theme.colors.primary};
-  margin-bottom: ${props => props.theme.spacing.sm};
-`;
+  margin-bottom: 0.75rem;
 
-const Title = styled.h1`
-  font-size: ${props => props.theme.fontSizes['2xl']};
-  color: #1a202c;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  font-weight: 600;
+  i {
+    font-size: 2rem;
+  }
 `;
 
 const Subtitle = styled.p`
-  color: #718096;
-  margin-bottom: ${props => props.theme.spacing.xl};
-  font-size: ${props => props.theme.fontSizes.md};
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
+  margin: 0;
+`;
+
+const FormContainer = styled.div`
+  padding: 2rem 2.5rem;
 `;
 
 const Form = styled.form`
-  text-align: left;
-`;
-
-const FormRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.md};
+  margin-bottom: 0;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: ${props => props.theme.spacing.md};
+  margin-bottom: 1.5rem;
 `;
 
 const Label = styled.label`
   display: block;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  color: #4a5568;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
   font-weight: 500;
-  font-size: ${props => props.theme.fontSizes.sm};
+  font-size: 0.875rem;
+
+  span.required {
+    color: #e60012;
+    margin-left: 2px;
+  }
 `;
 
 const StyledInput = styled(Input)`
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
+  padding: 0.7rem 1rem;
+  border: 1px solid #e3e3e3;
   border-radius: 8px;
-  font-size: ${props => props.theme.fontSizes.md};
+  font-size: 0.8rem;
+  background: #fafafa;
   transition: all 0.2s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: ${props => props.theme.colors.primary};
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
-  }
-  
-  &::placeholder {
-    color: #a0aec0;
-  }
-`;
 
-const StyledSelect = styled(Select)`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: ${props => props.theme.fontSizes.md};
-  background: white;
-  transition: all 0.2s ease;
-  
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary};
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    border-color: #e60012;
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(230, 0, 18, 0.12);
+  }
+
+  &::placeholder {
+    color: #b3b3b3;
   }
 `;
 
 const RegisterButton = styled(Button)`
   width: 100%;
-  padding: 12px;
-  font-size: ${props => props.theme.fontSizes.md};
+  padding: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  border-radius: 8px;
-  margin-top: ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.primary};
+  border-radius: 6px;
+  background: #e60012;
   border: none;
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${props => props.theme.colors.primaryHover};
-    transform: translateY(-1px);
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+
+  &:hover:not(:disabled) {
+    background: #c50010;
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
   }
+
+  i {
+    font-size: 0.875rem;
+  }
+`;
+
+const Divider = styled.div`
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #999999;
+  font-size: 0.875rem;
 `;
 
 const LinkGroup = styled.div`
   text-align: center;
-  margin-top: ${props => props.theme.spacing.xl};
-  font-size: ${props => props.theme.fontSizes.sm};
-  color: #718096;
+  font-size: 0.875rem;
+  color: #666666;
 `;
 
 const StyledLink = styled(Link)`
-  color: ${props => props.theme.colors.primary};
+  color: #e60012;
   text-decoration: none;
-  font-weight: 500;
-  
+  font-weight: 600;
+
   &:hover {
     text-decoration: underline;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fed7d7;
-  color: #c53030;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: ${props => props.theme.spacing.md};
-  font-size: ${props => props.theme.fontSizes.sm};
-  border: 1px solid #feb2b2;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #fecaca;
 `;
 
 const SuccessMessage = styled.div`
-  background: #c6f6d5;
-  color: #22543d;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: ${props => props.theme.spacing.md};
-  font-size: ${props => props.theme.fontSizes.sm};
-  border: 1px solid #9ae6b4;
+  background: #d1fae5;
+  color: #059669;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #a7f3d0;
+`;
+
+const RoleSelection = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+`;
+
+const RoleCard = styled.div`
+  padding: 0.5rem;
+  border: 1.5px solid ${(props) => (props.selected ? "#E60012" : "#E0E0E0")};
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  background: ${(props) => (props.selected ? "#FEE2E2" : "#FAFAFA")};
+
+  &:hover {
+    border-color: #e60012;
+    background: ${(props) => (props.selected ? "#FEE2E2" : "#FFFFFF")};
+  }
+`;
+
+const RoleTitle = styled.div`
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.8125rem;
+  margin-bottom: 0.125rem;
+`;
+
+const RoleDesc = styled.div`
+  font-size: 0.6875rem;
+  color: #999999;
+  line-height: 1.2;
 `;
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: '',
-    name: '',
-    email: '',
-    department: '',
-    role: 'user',
+    username: "",
+    password: "",
+    confirmPassword: "",
+    name: "",
+    email: "",
+    department: "",
+    role: "user",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
+  const handleRoleSelect = (role) => {
+    setFormData((prev) => ({
+      ...prev,
+      role,
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.username.trim()) {
-      newErrors.username = '아이디를 입력해주세요.';
+      newErrors.username = "아이디를 입력해주세요.";
     }
     if (!formData.password.trim()) {
-      newErrors.password = '비밀번호를 입력해주세요.';
+      newErrors.password = "비밀번호를 입력해주세요.";
     }
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+      newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
     }
     if (!formData.name.trim()) {
-      newErrors.name = '이름을 입력해주세요.';
+      newErrors.name = "이름을 입력해주세요.";
     }
     if (!formData.email.trim()) {
-      newErrors.email = '이메일을 입력해주세요.';
+      newErrors.email = "이메일을 입력해주세요.";
     }
     if (!formData.department.trim()) {
-      newErrors.department = '부서를 선택해주세요.';
+      newErrors.department = "부서를 선택해주세요.";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -233,37 +284,44 @@ const Register = () => {
       if (result.success) {
         setIsSuccess(true);
         setTimeout(() => {
-          // 회원가입 성공 시 로그인 페이지로 이동
-          window.location.href = '/login';
+          navigate("/login");
         }, 2000);
       } else {
-        setErrors({ submit: result.error || '회원가입에 실패했습니다.' });
+        setErrors({ submit: result.error || "회원가입에 실패했습니다." });
       }
     } catch (error) {
-      setErrors({ submit: '회원가입에 실패했습니다.' });
+      setErrors({ submit: "회원가입에 실패했습니다." });
     } finally {
       setLoading(false);
     }
   };
 
   const departments = [
-    { value: '', label: '부서를 선택하세요' },
-    { value: '마케팅팀', label: '마케팅팀' },
-    { value: '영업팀', label: '영업팀' },
-    { value: '고객관리팀', label: '고객관리팀' },
-    { value: '관리팀', label: '관리팀' },
-    { value: '기술팀', label: '기술팀' },
+    { value: "", label: "부서를 선택하세요" },
+    { value: "마케팅팀", label: "마케팅팀" },
+    { value: "영업팀", label: "영업팅" },
+    { value: "고객관리팀", label: "고객관리팀" },
+    { value: "관리팀", label: "관리팀" },
+    { value: "기술팀", label: "기술팀" },
   ];
 
   if (isSuccess) {
     return (
       <RegisterContainer>
         <RegisterCard>
-          <Logo>KT CS</Logo>
-          <Title>회원가입 완료</Title>
-          <SuccessMessage>
-            회원가입이 성공적으로 완료되었습니다! 2초 후 로그인 페이지로 이동합니다.
-          </SuccessMessage>
+          <RedHeader>
+            <Logo>
+              <i className="fas fa-check-circle"></i>
+              KT
+            </Logo>
+            <Subtitle>회원가입이 완료되었습니다</Subtitle>
+          </RedHeader>
+          <FormContainer>
+            <SuccessMessage>
+              회원가입이 성공적으로 완료되었습니다! 2초 후 로그인 페이지로
+              이동합니다.
+            </SuccessMessage>
+          </FormContainer>
         </RegisterCard>
       </RegisterContainer>
     );
@@ -272,16 +330,44 @@ const Register = () => {
   return (
     <RegisterContainer>
       <RegisterCard>
-        <Logo>KT CS</Logo>
-        <Title>회원가입</Title>
-        <Subtitle>KT CS 마케팅 시스템 계정을 만드세요</Subtitle>
+        <RedHeader>
+          <Logo>
+            <i className="fas fa-user-plus"></i>
+            KT
+          </Logo>
+          <Subtitle>AI 마케팅 메시지 생성 시스템</Subtitle>
+        </RedHeader>
 
-        {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
-        
-        <Form onSubmit={handleSubmit}>
-          <FormRow>
+        <FormContainer>
+          {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
+
+          <Form onSubmit={handleSubmit}>
             <FormGroup>
-              <Label htmlFor="username">아이디 *</Label>
+              <Label>
+                역할 선택 <span className="required">*</span>
+              </Label>
+              <RoleSelection>
+                <RoleCard
+                  selected={formData.role === "admin"}
+                  onClick={() => handleRoleSelect("admin")}
+                >
+                  <RoleTitle>관리자</RoleTitle>
+                  <RoleDesc>캠페인, 상품, 권한 관리</RoleDesc>
+                </RoleCard>
+                <RoleCard
+                  selected={formData.role === "user"}
+                  onClick={() => handleRoleSelect("user")}
+                >
+                  <RoleTitle>실행자</RoleTitle>
+                  <RoleDesc>메시지 생성 및 발송</RoleDesc>
+                </RoleCard>
+              </RoleSelection>
+            </FormGroup>
+
+            <FormGroup>
+              <Label htmlFor="username">
+                아이디 <span className="required">*</span>
+              </Label>
               <StyledInput
                 id="username"
                 name="username"
@@ -293,9 +379,11 @@ const Register = () => {
                 disabled={loading}
               />
             </FormGroup>
-            
+
             <FormGroup>
-              <Label htmlFor="name">이름 *</Label>
+              <Label htmlFor="name">
+                이름 <span className="required">*</span>
+              </Label>
               <StyledInput
                 id="name"
                 name="name"
@@ -307,11 +395,11 @@ const Register = () => {
                 disabled={loading}
               />
             </FormGroup>
-          </FormRow>
-          
-          <FormRow>
+
             <FormGroup>
-              <Label htmlFor="password">비밀번호 *</Label>
+              <Label htmlFor="password">
+                비밀번호 <span className="required">*</span>
+              </Label>
               <StyledInput
                 id="password"
                 name="password"
@@ -323,9 +411,11 @@ const Register = () => {
                 disabled={loading}
               />
             </FormGroup>
-            
+
             <FormGroup>
-              <Label htmlFor="confirmPassword">비밀번호 확인 *</Label>
+              <Label htmlFor="confirmPassword">
+                비밀번호 확인 <span className="required">*</span>
+              </Label>
               <StyledInput
                 id="confirmPassword"
                 name="confirmPassword"
@@ -337,46 +427,35 @@ const Register = () => {
                 disabled={loading}
               />
             </FormGroup>
-          </FormRow>
-          
-          <FormGroup>
-            <Label htmlFor="email">이메일 *</Label>
-            <StyledInput
-              id="email"
-              name="email"
-              type="email"
-              placeholder="이메일을 입력하세요"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              disabled={loading}
-            />
-          </FormGroup>
-          
-          <FormGroup>
-            <Label htmlFor="department">부서 *</Label>
-            <StyledSelect
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              error={errors.department}
-              disabled={loading}
-            >
-              {departments.map(dept => (
-                <option key={dept.value} value={dept.value}>{dept.label}</option>
-              ))}
-            </StyledSelect>
-          </FormGroup>
-          
-          <RegisterButton type="submit" disabled={loading}>
-            {loading ? '회원가입 중...' : '회원가입'}
-          </RegisterButton>
-        </Form>
-        
-        <LinkGroup>
-          이미 계정이 있으신가요? <StyledLink to="/login">로그인</StyledLink>
-        </LinkGroup>
+
+            <FormGroup>
+              <Label htmlFor="email">
+                이메일 <span className="required">*</span>
+              </Label>
+              <StyledInput
+                id="email"
+                name="email"
+                type="email"
+                placeholder="이메일을 입력하세요"
+                value={formData.email}
+                onChange={handleChange}
+                error={errors.email}
+                disabled={loading}
+              />
+            </FormGroup>
+
+            <RegisterButton type="submit" disabled={loading}>
+              <i className="fas fa-user-plus"></i>
+              {loading ? "회원가입 중..." : "회원가입"}
+            </RegisterButton>
+          </Form>
+
+          <Divider>또는</Divider>
+
+          <LinkGroup>
+            이미 계정이 있으신가요? <StyledLink to="/login">로그인</StyledLink>
+          </LinkGroup>
+        </FormContainer>
       </RegisterCard>
     </RegisterContainer>
   );

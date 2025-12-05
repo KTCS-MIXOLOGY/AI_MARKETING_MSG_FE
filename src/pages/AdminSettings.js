@@ -1,0 +1,569 @@
+// src/pages/AdminSettings.jsx (예시)
+
+import React, { useState } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import Layout from "../components/common/Layout";
+import Sidebar from "../components/common/Sidebar";
+import Header from "../components/common/Header";
+
+const SettingsContainer = styled.div`
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+`;
+
+const SettingsTabs = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e5e5e5;
+  margin-bottom: 2rem;
+`;
+
+const Tab = styled.button`
+  padding: 0.875rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: ${(props) => (props.active ? "#E60012" : "#737373")};
+  border-bottom: 2px solid
+    ${(props) => (props.active ? "#E60012" : "transparent")};
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #e60012;
+  }
+
+  i {
+    margin-right: 0.5rem;
+  }
+`;
+
+const TabContent = styled.div`
+  display: ${(props) => (props.active ? "block" : "none")};
+`;
+
+const SettingsSection = styled.div`
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #171717;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    color: #e60012;
+  }
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const FormLabel = styled.label`
+  display: block;
+  font-weight: 600;
+  color: #171717;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+`;
+
+const FormInput = styled.input`
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  background: ${(props) => (props.disabled ? "#F5F5F5" : "#FAFAFA")};
+  color: ${(props) => (props.disabled ? "#A3A3A3" : "#171717")};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "text")};
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #e60012;
+    background: #ffffff;
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+`;
+
+const Button = styled.button`
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: ${(props) =>
+    props.variant === "primary" ? "#E60012" : "#F5F5F5"};
+  color: ${(props) => (props.variant === "primary" ? "#FFFFFF" : "#171717")};
+
+  &:hover {
+    background: ${(props) =>
+      props.variant === "primary" ? "#C50010" : "#E5E5E5"};
+  }
+
+  i {
+    margin-right: 0.5rem;
+  }
+`;
+
+const InfoCard = styled.div`
+  background: #f8fafc;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+`;
+
+const InfoRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e5e5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const InfoLabel = styled.span`
+  font-size: 0.875rem;
+  color: #737373;
+  font-weight: 500;
+`;
+
+const InfoValue = styled.span`
+  font-size: 0.9375rem;
+  color: #171717;
+  font-weight: 600;
+`;
+
+const HelpContent = styled.div`
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 1.25rem;
+  font-size: 0.875rem;
+  color: #525252;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+
+  strong {
+    color: #e60012;
+    font-weight: 600;
+  }
+
+  ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+  }
+`;
+
+const FeatureGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const FeatureCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #e60012;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  i {
+    font-size: 1.5rem;
+    color: #e60012;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #171717;
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    font-size: 0.8125rem;
+    color: #737373;
+    margin: 0;
+    line-height: 1.5;
+  }
+`;
+
+const AdminSettings = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+
+  // 관리자 기준 기본값: 김영희
+  const displayName =
+    user?.name && user.name !== "관리자" ? user.name : "김영희";
+  const displayEmail = user?.email || "younghee.kim@ktcs.com";
+
+  const [formData, setFormData] = useState({
+    name: displayName,
+    email: displayEmail,
+    phone: "010-1234-5678",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveProfile = () => {
+    alert("프로필이 저장되었습니다. (Mock)");
+  };
+
+  const handleChangePassword = () => {
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    alert("비밀번호가 변경되었습니다. (Mock)");
+    setFormData((prev) => ({
+      ...prev,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    }));
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("로그아웃 하시겠습니까?")) {
+      logout();
+      navigate("/login");
+    }
+  };
+
+  return (
+    <Layout
+      sidebarCollapsed={sidebarCollapsed}
+      sidebar={
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          activeMenu="settings"
+        />
+      }
+      header={<Header />}
+    >
+      <SettingsContainer>
+        <SettingsTabs>
+          <Tab
+            active={activeTab === "profile"}
+            onClick={() => setActiveTab("profile")}
+          >
+            개인 정보
+          </Tab>
+          <Tab
+            active={activeTab === "help"}
+            onClick={() => setActiveTab("help")}
+          >
+            도움말
+          </Tab>
+        </SettingsTabs>
+
+        {/* 개인 정보 탭 */}
+        <TabContent active={activeTab === "profile"}>
+          <SettingsSection>
+            <SectionTitle>
+              <i className="fas fa-user-shield"></i>
+              관리자 정보
+            </SectionTitle>
+
+            <InfoCard>
+              <InfoRow>
+                <InfoLabel>이름</InfoLabel>
+                <InfoValue>{displayName}</InfoValue>
+              </InfoRow>
+              <InfoRow>
+                <InfoLabel>이메일</InfoLabel>
+                <InfoValue>{displayEmail}</InfoValue>
+              </InfoRow>
+              <InfoRow>
+                <InfoLabel>역할</InfoLabel>
+                <InfoValue>관리자</InfoValue>
+              </InfoRow>
+              <InfoRow>
+                <InfoLabel>가입일</InfoLabel>
+                <InfoValue>2024-01-15</InfoValue>
+              </InfoRow>
+            </InfoCard>
+          </SettingsSection>
+
+          <SettingsSection>
+            <SectionTitle>
+              <i className="fas fa-edit"></i>
+              프로필 수정
+            </SectionTitle>
+
+            <FormGroup>
+              <FormLabel>이름</FormLabel>
+              <FormInput
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="이름을 입력하세요"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>이메일</FormLabel>
+              <FormInput
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="이메일을 입력하세요"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>전화번호</FormLabel>
+              <FormInput
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="전화번호를 입력하세요"
+              />
+            </FormGroup>
+
+            <ButtonGroup>
+              <Button
+                variant="secondary"
+                onClick={() => navigate("/dashboard")}
+              >
+                취소
+              </Button>
+              <Button variant="primary" onClick={handleSaveProfile}>
+                <i className="fas fa-save"></i>
+                저장
+              </Button>
+            </ButtonGroup>
+          </SettingsSection>
+
+          <SettingsSection>
+            <SectionTitle>
+              <i className="fas fa-lock"></i>
+              비밀번호 변경
+            </SectionTitle>
+
+            <FormGroup>
+              <FormLabel>현재 비밀번호</FormLabel>
+              <FormInput
+                type="password"
+                name="currentPassword"
+                value={formData.currentPassword}
+                onChange={handleInputChange}
+                placeholder="현재 비밀번호"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>새 비밀번호</FormLabel>
+              <FormInput
+                type="password"
+                name="newPassword"
+                value={formData.newPassword}
+                onChange={handleInputChange}
+                placeholder="새 비밀번호 (6자 이상)"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>새 비밀번호 확인</FormLabel>
+              <FormInput
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                placeholder="새 비밀번호 확인"
+              />
+            </FormGroup>
+
+            <ButtonGroup>
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
+                  }))
+                }
+              >
+                취소
+              </Button>
+              <Button variant="primary" onClick={handleChangePassword}>
+                <i className="fas fa-key"></i>
+                비밀번호 변경
+              </Button>
+            </ButtonGroup>
+          </SettingsSection>
+
+          <SettingsSection>
+            <SectionTitle>
+              <i className="fas fa-sign-out-alt"></i>
+              계정 관리
+            </SectionTitle>
+
+            <p
+              style={{
+                marginBottom: "1rem",
+                color: "#737373",
+                fontSize: "0.875rem",
+              }}
+            >
+              로그아웃하면 현재 세션이 종료됩니다.
+            </p>
+
+            <Button variant="primary" onClick={handleLogout}>
+              <i className="fas fa-sign-out-alt"></i>
+              로그아웃
+            </Button>
+          </SettingsSection>
+        </TabContent>
+
+        {/* 도움말 탭 */}
+        <TabContent active={activeTab === "help"}>
+          <SettingsSection>
+            <SectionTitle>
+              <i className="fas fa-lightbulb"></i>
+              페이지별 기능 안내
+            </SectionTitle>
+
+            <HelpContent>
+              관리자 권한으로 사용할 수 있는 주요 페이지 기능을 정리했습니다. 각
+              페이지의 역할을 이해하고, 실행자 계정이 사용할 수 있는 범위와
+              구분해서 관리해 주세요.
+            </HelpContent>
+
+            <FeatureGrid>
+              <FeatureCard>
+                <i className="fas fa-home"></i>
+                <h4>홈</h4>
+                <p>
+                  전체 시스템의 핵심 지표(총 발송 수, 성공률, 활성 캠페인 수
+                  등)를 한눈에 확인하는 대시보드입니다. 관리자 계정 기준으로
+                  전체 데이터가 집계됩니다.
+                </p>
+              </FeatureCard>
+
+              <FeatureCard>
+                <i className="fas fa-bullhorn"></i>
+                <h4>캠페인 관리</h4>
+                <p>
+                  실행자가 생성한 캠페인 목록을 조회하고 상태(활성, 예약,
+                  완료)를 관리합니다. 필요 시 캠페인 정보를 수정하거나
+                  비활성화할 수 있습니다.
+                </p>
+              </FeatureCard>
+
+              <FeatureCard>
+                <i className="fas fa-box"></i>
+                <h4>상품 관리</h4>
+                <p>
+                  메시지 추천에 사용되는 상품 정보를 조회합니다. 요금제, 단말기
+                  등 상품 카테고리별 상태를 점검하고, 실제 운영 DB와 일치하는지
+                  검토하는 용도로 활용합니다.
+                </p>
+              </FeatureCard>
+
+              <FeatureCard>
+                <i className="fas fa-users"></i>
+                <h4>세그먼트 관리</h4>
+                <p>
+                  고객 세그먼트(이탈 위험, VIP, 신규 가입자 등)를 확인하고, 각
+                  세그먼트 대상 수와 사용 중인 캠페인을 점검합니다. 잘못된
+                  세그먼트가 있을 경우 수정 또는 비활성화를 검토합니다.
+                </p>
+              </FeatureCard>
+
+              <FeatureCard>
+                <i className="fas fa-user-cog"></i>
+                <h4>실행자 관리</h4>
+                <p>
+                  실행자 계정을 조회하고 상태(활성, 대기, 비활성)를 관리합니다.
+                  권한이 필요한 실행자에게 계정을 부여하거나, 사용 중지된 계정을
+                  비활성 처리할 수 있습니다.
+                </p>
+              </FeatureCard>
+
+              <FeatureCard>
+                <i className="fas fa-clipboard-list"></i>
+                <h4>로그 관리</h4>
+                <p>
+                  메시지 발송 이력, 실패 건, 재시도 내역 등을 조회하는
+                  페이지입니다. 문제 발생 시 어떤 캠페인·어떤 실행자에서
+                  발송되었는지 추적하는 데 사용합니다.
+                </p>
+              </FeatureCard>
+
+              <FeatureCard>
+                <i className="fas fa-cog"></i>
+                <h4>설정</h4>
+                <p>
+                  관리자 본인의 정보 수정, 비밀번호 변경, 시스템 사용 가이드
+                  확인 등을 할 수 있는 페이지입니다. 추후 알림 설정, 조직별 권한
+                  정책 등 확장 기능도 추가될 수 있습니다.
+                </p>
+              </FeatureCard>
+            </FeatureGrid>
+          </SettingsSection>
+        </TabContent>
+      </SettingsContainer>
+    </Layout>
+  );
+};
+
+export default AdminSettings;

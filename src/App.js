@@ -1,26 +1,28 @@
-import React from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import UserDashboard from './pages/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import MessageSegment from './pages/MessageSegment';
-import MessageIndividual from './pages/MessageIndividual';
-import Message from './pages/Message';
-import Customers from './pages/Customers';
-import Campaigns from './pages/Campaigns';
-import Products from './pages/Products';
-import Settings from './pages/Settings';
-import Customer360 from './pages/Customer360';
-import AdminUsers from './pages/AdminUsers';
-import AdminCampaigns from './pages/AdminCampaigns';
-import AdminProducts from './pages/AdminProducts';
-import AdminSegments from './pages/AdminSegments';
-import AdminMessages from './pages/AdminMessages';
-import PrivateRoute from './components/PrivateRoute';
-import { AuthProvider } from './contexts/AuthContext';
-import { theme, GlobalStyles } from './styles/theme';
+import React from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { ThemeProvider } from "styled-components";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import UserDashboard from "./pages/UserDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import MessageSegment from "./pages/UserMsgSeg";
+import MessageIndividual from "./pages/UserMsgIndiv";
+import Message from "./pages/UserMessage";
+import Campaigns from "./pages/UserCampaigns";
+import Products from "./pages/UserProducts";
+import Settings from "./pages/UserSettings";
+import UserCustomers from "./pages/UserCustomers";
+import UserCustomer360 from "./pages/UserCustomerList";
+import UserHistory from "./pages/UserHistory";
+import AdminUsers from "./pages/AdminUsers";
+import AdminCampaigns from "./pages/AdminCampaigns";
+import AdminProducts from "./pages/AdminProducts";
+import AdminSegments from "./pages/AdminSegments";
+import AdminSettings from "./pages/AdminSettings";
+import AdminMessages from "./pages/AdminMessages";
+import PrivateRoute from "./components/PrivateRoute";
+import { AuthProvider } from "./contexts/AuthContext";
+import { theme, GlobalStyles } from "./styles/theme";
 
 function App() {
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
           <Route
             path="/dashboard"
             element={
@@ -44,6 +47,7 @@ function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/admin"
             element={
@@ -52,6 +56,7 @@ function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/admin/users"
             element={
@@ -93,6 +98,14 @@ function App() {
             }
           />
           <Route
+            path="/admin/settings"
+            element={
+              <PrivateRoute>
+                <AdminSettings />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/message/segment"
             element={
               <PrivateRoute>
@@ -112,10 +125,11 @@ function App() {
             path="/customers"
             element={
               <PrivateRoute>
-                <Customers />
+                <UserCustomers />
               </PrivateRoute>
             }
           />
+
           <Route
             path="/message"
             element={
@@ -141,6 +155,14 @@ function App() {
             }
           />
           <Route
+            path="/history"
+            element={
+              <PrivateRoute>
+                <UserHistory />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <PrivateRoute>
@@ -152,10 +174,11 @@ function App() {
             path="/customer/:id"
             element={
               <PrivateRoute>
-                <Customer360 />
+                <UserCustomer360 />
               </PrivateRoute>
             }
           />
+
           <Route path="/" element={<Login />} />
         </Routes>
       </AuthProvider>
