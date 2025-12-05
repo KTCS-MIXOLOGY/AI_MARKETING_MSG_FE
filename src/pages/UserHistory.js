@@ -417,7 +417,6 @@ const UserHistory = () => {
     gender: "",
     region: "",
     membership: "",
-    plan: "",
     period: "all",
   });
 
@@ -464,8 +463,7 @@ const UserHistory = () => {
     },
     {
       id: "MSG004",
-      content:
-        "안녕하세요~ 갤럭시 S24 출시라고 고객님만을 위한 특별 이벤트 준비했어요. 확인하실래요?",
+      content: "메시지 생성 과정에서 오류가 발생했습니다. (사유: AI 응답 오류)",
       campaign: "재가입 유도",
       status: "failed",
       type: "segment",
@@ -517,7 +515,6 @@ const UserHistory = () => {
       gender: "",
       region: "",
       membership: "",
-      plan: "",
       period: "all",
     };
     setFilters(reset);
@@ -562,9 +559,6 @@ const UserHistory = () => {
         (m) => m.targetMembership === filters.membership
       );
     }
-    if (filters.plan) {
-      filtered = filtered.filter((m) => m.targetPlan === filters.plan);
-    }
 
     setFilteredMessages(filtered);
   };
@@ -579,7 +573,7 @@ const UserHistory = () => {
   };
 
   const getStatusText = (status) => {
-    return status === "sent" ? "✓ 발송완료" : "✗ 발송실패";
+    return status === "sent" ? "✓ 생성완료" : "✗ 생성실패";
   };
 
   const totalSent = messages.filter((m) => m.status === "sent").length;
@@ -625,7 +619,7 @@ const UserHistory = () => {
           <StatCard>
             <StatHeader>
               <div>
-                <StatTitle>발송 완료</StatTitle>
+                <StatTitle>생성 완료</StatTitle>
                 <StatValue>{totalSent}</StatValue>
               </div>
               <StatIcon>
@@ -637,7 +631,7 @@ const UserHistory = () => {
           <StatCard>
             <StatHeader>
               <div>
-                <StatTitle>발송 실패</StatTitle>
+                <StatTitle>생성 실패</StatTitle>
                 <StatValue>{totalFailed}</StatValue>
               </div>
               <StatIcon>
@@ -663,18 +657,18 @@ const UserHistory = () => {
 
         <FilterSection>
           <h3>
-            <i className="fas fa-filter" /> 발송 이력 필터
+            <i className="fas fa-filter" /> 생성 이력 필터
           </h3>
           <FilterRow>
             <FilterGroup>
-              <FilterLabel>발송 상태</FilterLabel>
+              <FilterLabel>생성 상태</FilterLabel>
               <FilterSelect
                 value={filters.status}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
               >
                 <option value="">전체</option>
-                <option value="sent">발송완료</option>
-                <option value="failed">발송실패</option>
+                <option value="sent">생성완료</option>
+                <option value="failed">생성실패</option>
               </FilterSelect>
             </FilterGroup>
 
@@ -757,25 +751,10 @@ const UserHistory = () => {
                 }
               >
                 <option value="">전체</option>
-                <option value="브론즈">🥉 브론즈</option>
-                <option value="실버">🥈 실버</option>
-                <option value="골드">🥇 골드</option>
-                <option value="플래티넘">💎 플래티넘</option>
-              </FilterSelect>
-            </FilterGroup>
-
-            <FilterGroup>
-              <FilterLabel>요금제</FilterLabel>
-              <FilterSelect
-                value={filters.plan}
-                onChange={(e) => handleFilterChange("plan", e.target.value)}
-              >
-                <option value="">전체</option>
-                <option value="5G 프리미엄">5G 프리미엄</option>
-                <option value="5G 표준">5G 표준</option>
-                <option value="LTE">LTE</option>
-                <option value="알뜰폰">알뜰폰</option>
-                <option value="기업">기업 요금제</option>
+                <option value="브론즈">브론즈</option>
+                <option value="실버">실버</option>
+                <option value="골드">골드</option>
+                <option value="플래티넘">플래티넘</option>
               </FilterSelect>
             </FilterGroup>
 

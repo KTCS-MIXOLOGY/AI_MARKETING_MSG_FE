@@ -281,7 +281,7 @@ const UserDashboard = ({ onMenuClick }) => {
 
   const stats = [
     { label: "생성한 메시지", value: 7 },
-    { label: "발송 완료", value: 5 },
+    { label: "생성 완료", value: 5 },
     { label: "활성 캠페인", value: 4 },
     { label: "평균 전환율", value: "15.8%" },
   ];

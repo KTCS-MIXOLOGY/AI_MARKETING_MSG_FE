@@ -453,7 +453,7 @@ const AdminDashboard = () => {
       icon: "fas fa-bullhorn",
     },
     {
-      label: "발송 메시지",
+      label: "생성 메시지",
       value: "7",
       change: "+8%",
       changeCaption: "지난주 대비",
@@ -621,7 +621,7 @@ const AdminDashboard = () => {
           <div>
             <PageTitle>대시보드</PageTitle>
             <PageSubtitle>
-              KT 마케팅 메시지 발송 현황과 활성 캠페인을 한눈에 확인하세요.
+              KT 마케팅 메시지 생성 현황과 활성 캠페인을 한눈에 확인하세요.
             </PageSubtitle>
           </div>
         </TopBar>
@@ -647,7 +647,7 @@ const AdminDashboard = () => {
         <TopGrid>
           <LargeCardBox>
             <CardHeader>
-              <CardTitle>월별 메시지 발송 현황</CardTitle>
+              <CardTitle>월별 메시지 생성 현황</CardTitle>
               <CardMeta>단위: 건</CardMeta>
             </CardHeader>
             <ChartWrapper>
@@ -763,7 +763,6 @@ const AdminDashboard = () => {
                       <CampaignTitle>{c.title}</CampaignTitle>
                       <CampaignTag>{c.tag}</CampaignTag>
                       <CampaignDateRow>
-                        <i className="far fa-calendar-alt" />
                         <span>{c.dateRange}</span>
                       </CampaignDateRow>
                     </CampaignText>
@@ -782,7 +781,7 @@ const AdminDashboard = () => {
         <BottomGrid>
           <LargeCardBox>
             <CardHeader>
-              <CardTitle>최근 메시지 발송 이력</CardTitle>
+              <CardTitle>최근 메시지 생성 이력</CardTitle>
               <CardMeta>최근 4건</CardMeta>
             </CardHeader>
             <RecentTable>
@@ -791,7 +790,7 @@ const AdminDashboard = () => {
                   <RecentTh>제목</RecentTh>
                   <RecentTh>유형</RecentTh>
                   <RecentTh>생성자</RecentTh>
-                  <RecentTh>발송시각</RecentTh>
+                  <RecentTh>생성시각</RecentTh>
                   <RecentTh>상태</RecentTh>
                 </tr>
               </RecentThead>

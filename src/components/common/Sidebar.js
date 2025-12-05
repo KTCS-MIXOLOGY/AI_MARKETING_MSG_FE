@@ -133,13 +133,13 @@ const Sidebar = ({ activeMenu }) => {
     },
     {
       id: "customer-view",
-      label: "고객 360도 뷰",
+      label: "고객 정보 조회",
       icon: "fa-user-circle",
       path: "/customers",
     },
     {
       id: "history",
-      label: "발송 이력",
+      label: "생성 이력",
       icon: "fa-history",
       path: "/history",
     },
