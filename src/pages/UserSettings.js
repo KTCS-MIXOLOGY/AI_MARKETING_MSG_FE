@@ -498,7 +498,7 @@ const UserSettings = () => {
 
               <FeatureCard>
                 <i className="fas fa-user-circle"></i>
-                <h4>고객 360도 뷰</h4>
+                <h4>고객 정보 조회</h4>
                 <p>
                   고객 ID로 검색하여 기본 정보, 구매 이력, 행동 패턴 등 상세한
                   고객 정보를 확인할 수 있습니다.

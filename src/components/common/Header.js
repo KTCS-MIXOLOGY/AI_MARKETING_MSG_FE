@@ -98,7 +98,7 @@ const Header = () => {
   const getDisplayName = () => {
     if (!user) return "사용자";
     if (user.role === "admin") return `${user.name} 관리자`;
-    return `${user.name} 실행자`;
+    return `${user.name} 사용자`;
   };
 
   const getInitial = () => {
