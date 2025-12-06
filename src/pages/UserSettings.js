@@ -602,7 +602,7 @@ const UserSettings = () => {
             </SectionTitle>
 
             <FeatureGrid>
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/dashboard")}>
                 <i className="fas fa-home"></i>
                 <h4>홈</h4>
                 <p>
@@ -611,7 +611,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/message")}>
                 <i className="fas fa-magic"></i>
                 <h4>메시지 생성</h4>
                 <p>
@@ -620,7 +620,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/customers")}>
                 <i className="fas fa-user-circle"></i>
                 <h4>고객 정보 조회</h4>
                 <p>
@@ -629,7 +629,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/history")}>
                 <i className="fas fa-history"></i>
                 <h4>발송 이력</h4>
                 <p>
@@ -638,7 +638,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/campaigns")}>
                 <i className="fas fa-bullhorn"></i>
                 <h4>캠페인 조회</h4>
                 <p>
@@ -647,7 +647,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/products")}>
                 <i className="fas fa-box"></i>
                 <h4>상품 조회</h4>
                 <p>
@@ -655,8 +655,8 @@ const UserSettings = () => {
                   정보를 확인할 수 있습니다.
                 </p>
               </FeatureCard>
-
-              <FeatureCard>
+              
+              <FeatureCard onClick={() => setActiveTab("profile")}>
                 <i className="fas fa-cog"></i>
                 <h4>설정</h4>
                 <p>

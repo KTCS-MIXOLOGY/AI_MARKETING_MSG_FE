@@ -110,10 +110,18 @@ const Header = () => {
       : "실";
   };
 
+  const handleUserInfoClick = () => {
+    if (user?.role === "ADMIN") {
+      navigate("/admin/settings");
+    } else {
+      navigate("/settings");
+    }
+  };
+
   return (
     <HeaderContainer>
       <HeaderRight>
-        <UserInfo>
+        <UserInfo onClick={handleUserInfoClick}>
           <UserAvatar className="user-avatar">{getInitial()}</UserAvatar>
           <UserName>{getDisplayName()}</UserName>
         </UserInfo>

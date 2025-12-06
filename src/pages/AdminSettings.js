@@ -203,10 +203,12 @@ const FeatureCard = styled.div`
   border-radius: 8px;
   padding: 1.25rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     border-color: #e60012;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
   }
 
   i {
@@ -610,7 +612,7 @@ const AdminSettings = () => {
             </HelpContent>
 
             <FeatureGrid>
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin")}>
                 <i className="fas fa-home"></i>
                 <h4>홈</h4>
                 <p>
@@ -620,7 +622,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/campaigns")}>
                 <i className="fas fa-bullhorn"></i>
                 <h4>캠페인 관리</h4>
                 <p>
@@ -630,7 +632,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/products")}>
                 <i className="fas fa-box"></i>
                 <h4>상품 관리</h4>
                 <p>
@@ -640,7 +642,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/segments")}>
                 <i className="fas fa-users"></i>
                 <h4>세그먼트 관리</h4>
                 <p>
@@ -650,7 +652,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/users")}>
                 <i className="fas fa-user-cog"></i>
                 <h4>실행자 관리</h4>
                 <p>
@@ -660,7 +662,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/messages")}>
                 <i className="fas fa-clipboard-list"></i>
                 <h4>로그 관리</h4>
                 <p>
@@ -670,7 +672,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => setActiveTab("profile")}>
                 <i className="fas fa-cog"></i>
                 <h4>설정</h4>
                 <p>
