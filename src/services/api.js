@@ -58,6 +58,13 @@ export const authAPI = {
   logout: () => api.post('/auth/logout'),
 };
 
+// Profile API (관리자, 실행자 모두 사용 가능)
+export const profileAPI = {
+  getMyProfile: () => api.get('/users/me'),
+  updateMyProfile: (profileData) => api.patch('/users/me', profileData),
+  changePassword: (passwordData) => api.patch('/users/me/password', passwordData),
+};
+
 // Users API (Admin only)
 export const usersAPI = {
   getUsers: (params = {}) => api.get('/admin/users', { params }),
