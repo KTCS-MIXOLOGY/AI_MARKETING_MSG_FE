@@ -581,32 +581,43 @@ const AdminUsers = () => {
     );
   };
 
-  // 사용자 승인 거부
+  // 사용자 승인 거부/취소
   const handleReject = async (userId, event) => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
 
+    // 현재 사용자 상태 확인
+    const user = users.find(u => (u.userId || u.id) === userId) || selectedUser;
+    const isApproved = user?.status === "APPROVED";
+    const userRole = user?.role || "EXECUTOR";
+
+    const title = isApproved ? "사용자 승인 취소" : "사용자 승인 거부";
+    const message = isApproved
+      ? "이 사용자의 승인을 취소하시겠습니까? 사용자는 더 이상 시스템에 접근할 수 없습니다."
+      : "이 사용자의 승인을 거부하시겠습니까?";
+    const successMessage = isApproved ? "사용자 승인이 취소되었습니다." : "사용자 승인이 거부되었습니다.";
+
     openConfirmModal(
-      "사용자 승인 거부",
-      "이 사용자의 승인을 거부하시겠습니까?",
+      title,
+      message,
       async () => {
         try {
-          await usersAPI.updateUser(userId, { status: "REJECTED" });
-          toast.success("사용자 승인이 거부되었습니다.");
+          await usersAPI.rejectUser(userId, userRole);
+          toast.success(successMessage);
           closeDetailModal();
           await fetchUsers();
         } catch (error) {
           const errorMessage =
-            error.response?.data?.message || "승인 거부에 실패했습니다.";
+            error.response?.data?.message || "승인 거부/취소에 실패했습니다.";
           toast.error(errorMessage);
           console.error("Failed to reject user:", error);
         } finally {
           closeConfirmModal();
         }
       },
-      "거부",
+      isApproved ? "승인 취소" : "거부",
       "#ef4444"
     );
   };
@@ -722,15 +733,45 @@ const AdminUsers = () => {
                               </IconButton>
                             </>
                           )}
-                          {user.status !== "PENDING" && (
-                            <IconButton
-                              bgColor="#fee2e2"
-                              color="#991b1b"
-                              onClick={(e) => handleDelete(user.userId || user.id, e)}
-                              title="삭제"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </IconButton>
+                          {user.status === "APPROVED" && (
+                            <>
+                              <IconButton
+                                bgColor="#fef3c7"
+                                color="#92400e"
+                                onClick={(e) => handleReject(user.userId || user.id, e)}
+                                title="승인 취소"
+                              >
+                                <i className="fas fa-ban"></i>
+                              </IconButton>
+                              <IconButton
+                                bgColor="#fee2e2"
+                                color="#991b1b"
+                                onClick={(e) => handleDelete(user.userId || user.id, e)}
+                                title="삭제"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </IconButton>
+                            </>
+                          )}
+                          {user.status === "REJECTED" && (
+                            <>
+                              <IconButton
+                                bgColor="#d1fae5"
+                                color="#065f46"
+                                onClick={(e) => handleApprove(user.userId || user.id, user.role, e)}
+                                title="승인"
+                              >
+                                <i className="fas fa-check"></i>
+                              </IconButton>
+                              <IconButton
+                                bgColor="#fee2e2"
+                                color="#991b1b"
+                                onClick={(e) => handleDelete(user.userId || user.id, e)}
+                                title="삭제"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </IconButton>
+                            </>
                           )}
                         </ActionButtons>
                       </Td>
@@ -866,15 +907,45 @@ const AdminUsers = () => {
                     </Button>
                   </>
                 )}
-                {selectedUser.status !== "PENDING" && (
-                  <Button
-                    bgColor="#ef4444"
-                    color="white"
-                    onClick={(e) => handleDelete(selectedUser.userId || selectedUser.id, e)}
-                  >
-                    <i className="fas fa-trash" style={{ marginRight: "0.5rem" }}></i>
-                    삭제
-                  </Button>
+                {selectedUser.status === "APPROVED" && (
+                  <>
+                    <Button
+                      bgColor="#f59e0b"
+                      color="white"
+                      onClick={(e) => handleReject(selectedUser.userId || selectedUser.id, e)}
+                    >
+                      <i className="fas fa-ban" style={{ marginRight: "0.5rem" }}></i>
+                      승인 취소
+                    </Button>
+                    <Button
+                      bgColor="#ef4444"
+                      color="white"
+                      onClick={(e) => handleDelete(selectedUser.userId || selectedUser.id, e)}
+                    >
+                      <i className="fas fa-trash" style={{ marginRight: "0.5rem" }}></i>
+                      삭제
+                    </Button>
+                  </>
+                )}
+                {selectedUser.status === "REJECTED" && (
+                  <>
+                    <Button
+                      bgColor="#10b981"
+                      color="white"
+                      onClick={(e) => handleApprove(selectedUser.userId || selectedUser.id, selectedUser.role, e)}
+                    >
+                      <i className="fas fa-check" style={{ marginRight: "0.5rem" }}></i>
+                      승인
+                    </Button>
+                    <Button
+                      bgColor="#ef4444"
+                      color="white"
+                      onClick={(e) => handleDelete(selectedUser.userId || selectedUser.id, e)}
+                    >
+                      <i className="fas fa-trash" style={{ marginRight: "0.5rem" }}></i>
+                      삭제
+                    </Button>
+                  </>
                 )}
                 <Button bgColor="#f3f4f6" color="#374151" onClick={closeDetailModal}>
                   닫기

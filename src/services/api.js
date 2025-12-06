@@ -66,7 +66,7 @@ export const usersAPI = {
   updateUser: (id, userData) => api.patch(`/admin/users/${id}`, userData),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   approveUser: (id, role) => api.patch(`/admin/users/${id}/approve`, { role }),
-  rejectUser: (id) => api.put(`/admin/users/${id}/reject`),
+  rejectUser: (id, role) => api.patch(`/admin/users/${id}/reject`, { role }),
 };
 
 // Campaigns API
