@@ -104,9 +104,9 @@ export const productsAPI = {
 // Customers API (EXECUTOR)
 export const customersAPI = {
   // searchType: ID, PHONE, NAME
-  searchCustomers: (searchType, searchValue, params = {}) =>
+  searchCustomers: (searchType, searchValue) =>
     api.get('/executor/customers/search', {
-      params: { searchType, searchValue, ...params }
+      params: { searchType, searchValue }
     }),
   getCustomer: (id) => api.get(`/executor/customers/${id}`),
 
