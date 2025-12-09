@@ -308,7 +308,6 @@ const SearchBox = styled.div`
   align-items: center;
   gap: 0.5rem;
   flex: 1;
-  max-width: 300px;
 `;
 
 const FilterSearchInput = styled.input`
@@ -576,6 +575,79 @@ const PrimaryButton = styled(Button)`
   }
 `;
 
+// Category Grid (UserProducts.js 스타일 참고)
+const CategoryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+`;
+
+const CategoryCardStyled = styled(Card)`
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  min-height: 160px;
+  justify-content: space-between;
+  padding: 1rem;
+  cursor: pointer;
+
+  &:hover {
+    background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+  }
+`;
+
+const CategoryIconBox = styled.div`
+  width: 45px;
+  height: 45px;
+  border-radius: 14px;
+  background: #fff4f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e60012;
+  box-shadow: 0 6px 18px rgba(230, 0, 18, 0.2);
+  margin: 0 auto 0.75rem;
+
+  i {
+    font-size: 1.4rem;
+  }
+`;
+
+const CategoryName = styled.h3`
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.3rem;
+`;
+
+const CategoryCount = styled.p`
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0;
+`;
+
+const BackToCategoriesButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  color: #6b7280;
+  font-size: 1.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #e60012;
+  }
+
+  i {
+    font-size: 1.5rem;
+  }
+`;
+
 const SecondaryButton = styled(Button)`
   background: #f3f4f6;
   color: #374151;
@@ -605,15 +677,17 @@ const UserMsgIndiv = () => {
 
   // Campaigns
   const [campaigns, setCampaigns] = useState([]);
-  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [campaignsLoading, setCampaignsLoading] = useState(false); // eslint-disable-line no-unused-vars
 
   // Products
   const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false); // eslint-disable-line no-unused-vars
 
   // Generated Messages
   const [generatedMessages, setGeneratedMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messageGroupId, setMessageGroupId] = useState(null); // 메시지 그룹 ID 저장
+  const [saveLoading, setSaveLoading] = useState(false);
 
   // Filters
   const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
@@ -622,9 +696,12 @@ const UserMsgIndiv = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [productSearchTerm, setProductSearchTerm] = useState("");
 
+  // Product Category View State
+  const [selectedProductCategory, setSelectedProductCategory] = useState(null); // null이면 카테고리 선택 화면
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Selections
   const [selectedCampaign, setSelectedCampaign] = useState(null);
@@ -754,16 +831,20 @@ const UserMsgIndiv = () => {
     });
   }, [campaigns, campaignTypeFilter, campaignStatusFilter, campaignSearchTerm]);
 
-  // 상품 필터링
+  // 상품 필터링 (선택된 카테고리 기반)
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const categoryMatch = productCategoryFilter === "all" || product.category === productCategoryFilter;
+      // 선택된 카테고리가 있으면 해당 카테고리만 표시
+      const categoryMatch = selectedProductCategory
+        ? product.category === selectedProductCategory
+        : (productCategoryFilter === "all" || product.category === productCategoryFilter);
+
       const searchMatch = productSearchTerm === "" ||
         product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(productSearchTerm.toLowerCase());
       return categoryMatch && searchMatch;
     });
-  }, [products, productCategoryFilter, productSearchTerm]);
+  }, [products, selectedProductCategory, productCategoryFilter, productSearchTerm]);
 
   // 캠페인 타입 목록
   const campaignTypes = useMemo(() => {
@@ -778,6 +859,48 @@ const UserMsgIndiv = () => {
   // 상품 카테고리 목록
   const productCategories = useMemo(() => {
     return Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
+  }, [products]);
+
+  // 카테고리 아이콘 매핑 (UserProducts.js와 동일)
+  const getCategoryIcon = (category) => {
+    const iconMap = {
+      모바일: "fa-mobile-alt",
+      충전식: "fa-battery-three-quarters",
+      인터넷: "fa-wifi",
+      TV: "fa-tv",
+      집전화: "fa-phone",
+      "인터넷+TV 결합": "fa-link",
+      "안심 서비스": "fa-shield-alt",
+      생활편의: "fa-home",
+      "TV 다시보기": "fa-history",
+      "영화/시리즈": "fa-film",
+      "키즈/에듀": "fa-child",
+      "스포츠/라이프": "fa-futbol",
+      데이터: "fa-database",
+      "OTT / 미디어": "fa-play-circle",
+      통화편의: "fa-phone-volume",
+      문자편의: "fa-sms",
+      "보안/안심": "fa-lock",
+      "단말케어(보험)": "fa-hospital",
+      금융결제: "fa-credit-card",
+    };
+    return iconMap[category] || "fa-box";
+  };
+
+  // 카테고리별 상품 개수 계산
+  const categoryStats = useMemo(() => {
+    const stats = {};
+    products.forEach((product) => {
+      const category = product.category;
+      if (!stats[category]) {
+        stats[category] = {
+          count: 0,
+          icon: getCategoryIcon(category),
+        };
+      }
+      stats[category].count += 1;
+    });
+    return stats;
   }, [products]);
 
   // 페이지네이션된 상품 목록
@@ -839,6 +962,21 @@ const UserMsgIndiv = () => {
     }
   };
 
+  // 카테고리 선택 핸들러
+  const handleCategoryClick = (category) => {
+    setSelectedProductCategory(category);
+    setProductCategoryFilter("all"); // 카테고리 변경 시 필터 초기화
+    setCurrentPage(1);
+  };
+
+  // 카테고리 목록으로 돌아가기
+  const handleBackToCategories = () => {
+    setSelectedProductCategory(null);
+    setProductCategoryFilter("all");
+    setProductSearchTerm("");
+    setCurrentPage(1);
+  };
+
   const handleProductToggle = (productId) => {
     setSelectedProducts((prev) => {
       if (prev.includes(productId)) {
@@ -880,6 +1018,31 @@ const UserMsgIndiv = () => {
     }
   };
 
+  // 실패 로그 저장 함수
+  const saveFailureLog = async (errorMessage) => {
+    try {
+      const failureData = {
+        messageType: "INDIVIDUAL",
+        messageGroupId: messageGroupId || null,
+        segmentFilter: null,
+        customerId: customerInfo?.id || null,
+        campaignId: selectedCampaign || null,
+        productId: selectedProducts[0] || null,
+        toneId: selectedTones[0] || null,
+        messageContent: "메시지 생성 실패",
+        messageVersion: 0,
+        generationPrompt: `개별 고객 메시지 생성 실패 - 오류: ${errorMessage}`,
+        aiModelUsed: "GPT-4",
+        status: "FAILED"
+      };
+
+      await messagesAPI.saveMessage(failureData);
+      console.log("실패 로그 저장 완료");
+    } catch (saveError) {
+      console.error("실패 로그 저장 중 오류:", saveError);
+    }
+  };
+
   // AI 메시지 생성
   const generateMessages = async () => {
     if (!customerInfo || !selectedCampaign || selectedProducts.length === 0 || selectedTones.length === 0) {
@@ -905,6 +1068,11 @@ const UserMsgIndiv = () => {
         const response = await messagesAPI.generateIndividualMessage(requestData);
 
         if (response.data.success) {
+          // messageGroupId 저장 (첫 번째 응답에서)
+          if (!messageGroupId && response.data.data.messageGroupId) {
+            setMessageGroupId(response.data.data.messageGroupId);
+          }
+
           // 생성된 모든 메시지 버전(3개)을 반환
           const messages = response.data.data.messages;
           return {
@@ -912,6 +1080,7 @@ const UserMsgIndiv = () => {
             toneName: tone.toneName,
             description: tone.description,
             icon: getIconForTone(tone.toneName),
+            messageGroupId: response.data.data.messageGroupId, // 각 톤별 messageGroupId 저장
             versions: messages.map((msg) => ({
               id: msg.messageId,
               version: msg.version,
@@ -930,13 +1099,19 @@ const UserMsgIndiv = () => {
       setGeneratedMessages(validMessages);
 
       if (validMessages.length === 0) {
-        toast.error("메시지 생성에 실패했습니다. 백엔드 서버의 /executor/messages/generate/individual API를 확인해주세요.");
+        const errorMsg = "백엔드 서버의 /executor/messages/generate/individual API 확인 필요";
+        toast.error("메시지 생성에 실패했습니다. " + errorMsg);
+        // 실패 로그 저장
+        await saveFailureLog(errorMsg);
       } else {
         toast.success(`${validMessages.length}개의 톤으로 메시지가 생성되었습니다.`);
       }
     } catch (error) {
       console.error("메시지 생성 실패:", error);
-      toast.error(`메시지 생성 중 오류가 발생했습니다: ${error.response?.data?.message || error.message}`);
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error(`메시지 생성 중 오류가 발생했습니다: ${errorMsg}`);
+      // 실패 로그 저장
+      await saveFailureLog(errorMsg);
     } finally {
       setMessagesLoading(false);
     }
@@ -975,6 +1150,63 @@ const UserMsgIndiv = () => {
     } catch (error) {
       console.error("복사 실패:", error);
       toast.error("메시지 복사에 실패했습니다.");
+    }
+  };
+
+  const handleSaveMessage = async () => {
+    if (!selectedMessage) {
+      toast.error("저장할 메시지를 선택해주세요.");
+      return;
+    }
+
+    // 선택된 메시지 찾기
+    let selectedVersion = null;
+    let selectedToneGroup = null;
+    for (const toneGroup of generatedMessages) {
+      const version = toneGroup.versions.find((v) => v.id === selectedMessage);
+      if (version) {
+        selectedVersion = version;
+        selectedToneGroup = toneGroup;
+        break;
+      }
+    }
+
+    if (!selectedVersion || !selectedToneGroup) {
+      toast.error("선택된 메시지를 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      setSaveLoading(true);
+
+      // API 요청 데이터 구성
+      const saveRequest = {
+        messageType: "INDIVIDUAL",
+        messageGroupId: selectedToneGroup.messageGroupId || messageGroupId,
+        segmentFilter: null, // INDIVIDUAL은 null
+        customerId: customerInfo.id,
+        campaignId: selectedCampaign,
+        productId: selectedProducts[0], // 첫 번째 선택 상품
+        toneId: selectedToneGroup.toneId,
+        messageContent: selectedVersion.content,
+        messageVersion: selectedVersion.version,
+        generationPrompt: `개별 고객 메시지 - ${selectedToneGroup.toneName} 톤`,
+        aiModelUsed: "GPT-4"
+      };
+
+      const response = await messagesAPI.saveMessage(saveRequest);
+
+      if (response.data.success) {
+        toast.success("메시지가 저장되었습니다!");
+        console.log("저장된 메시지:", response.data.data);
+      } else {
+        toast.error("메시지 저장에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("메시지 저장 실패:", error);
+      toast.error(`메시지 저장 중 오류가 발생했습니다: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -1195,72 +1427,110 @@ const UserMsgIndiv = () => {
         {/* Step 3: Product Selection */}
         <StepContent active={currentStep === 3}>
           <SectionTitle>
-            <i className="fas fa-box"></i>
-            상품 선택 (최대 3개)
-          </SectionTitle>
-          <FilterBar>
-            <FilterSelect
-              value={productCategoryFilter}
-              onChange={(e) => setProductCategoryFilter(e.target.value)}
-            >
-              <option value="all">모든 카테고리</option>
-              {productCategories.map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </FilterSelect>
-            <SearchBox>
-              <FilterSearchInput
-                type="text"
-                placeholder="상품 검색..."
-                value={productSearchTerm}
-                onChange={(e) => setProductSearchTerm(e.target.value)}
-              />
-            </SearchBox>
-          </FilterBar>
-          <ProductList>
-            {filteredProducts.length > 0 ? (
-              paginatedProducts.map((product) => (
-                <ProductItem
-                  key={product.id}
-                  selected={selectedProducts.includes(product.id)}
-                  onClick={() => handleProductToggle(product.id)}
-                >
-                  <ProductCheckbox
-                    type="checkbox"
-                    checked={selectedProducts.includes(product.id)}
-                    onChange={() => {}}
-                  />
-                  <ProductInfo>
-                    <ProductTitle>{product.name}</ProductTitle>
-                    <ProductDescription>{product.description}</ProductDescription>
-                  </ProductInfo>
-                </ProductItem>
-              ))
-            ) : (
-              <div style={{ textAlign: "center", padding: "3rem", color: "#6b7280" }}>
-                <i className="fas fa-search" style={{ fontSize: "2rem", marginBottom: "1rem", display: "block" }}></i>
-                <p>검색 결과가 없습니다.</p>
-              </div>
+            {selectedProductCategory && (
+              <BackToCategoriesButton onClick={handleBackToCategories}>
+                <i className="fas fa-arrow-left"></i>
+              </BackToCategoriesButton>
             )}
-          </ProductList>
-          {filteredProducts.length > 0 && (
-            <PaginationContainer>
-              <PaginationButton
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <i className="fas fa-chevron-left"></i>
-              </PaginationButton>
-              <PageInfo>
-                {currentPage} / {totalPages} 페이지 (총 {filteredProducts.length}개)
-              </PageInfo>
-              <PaginationButton
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <i className="fas fa-chevron-right"></i>
-              </PaginationButton>
-            </PaginationContainer>
+            <i className="fas fa-box"></i>
+            {selectedProductCategory ? `${selectedProductCategory} 상품 선택 (최대 3개)` : '상품 카테고리 선택'}
+          </SectionTitle>
+
+          {!selectedProductCategory ? (
+            /* 카테고리 선택 화면 */
+            <CategoryGrid>
+              {productCategories.map((category) => (
+                <CategoryCardStyled
+                  key={category}
+                  onClick={() => handleCategoryClick(category)}
+                >
+                  <div>
+                    <CategoryIconBox>
+                      <i className={`fas ${categoryStats[category]?.icon || "fa-box"}`} />
+                    </CategoryIconBox>
+                    <CategoryName>{category}</CategoryName>
+                    <CategoryCount>
+                      {categoryStats[category]?.count || 0}개 상품
+                    </CategoryCount>
+                  </div>
+
+                  <div style={{ textAlign: "center", padding: "0.5rem 0", borderTop: "1px solid #e5e7eb", marginTop: "0.5rem" }}>
+                    <i className="fas fa-arrow-right" style={{ color: "#e60012", fontSize: "0.9rem" }}></i>
+                  </div>
+                </CategoryCardStyled>
+              ))}
+            </CategoryGrid>
+          ) : (
+            /* 상품 목록 화면 */
+            <>
+              <FilterBar>
+                <FilterSelect
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value={5}>5개씩 보기</option>
+                  <option value={10}>10개씩 보기</option>
+                  <option value={20}>20개씩 보기</option>
+                  <option value={50}>50개씩 보기</option>
+                </FilterSelect>
+                <SearchBox>
+                  <FilterSearchInput
+                    type="text"
+                    placeholder="상품 검색..."
+                    value={productSearchTerm}
+                    onChange={(e) => setProductSearchTerm(e.target.value)}
+                  />
+                </SearchBox>
+              </FilterBar>
+              <ProductList>
+                {filteredProducts.length > 0 ? (
+                  paginatedProducts.map((product) => (
+                    <ProductItem
+                      key={product.id}
+                      selected={selectedProducts.includes(product.id)}
+                      onClick={() => handleProductToggle(product.id)}
+                    >
+                      <ProductCheckbox
+                        type="checkbox"
+                        checked={selectedProducts.includes(product.id)}
+                        onChange={() => {}}
+                      />
+                      <ProductInfo>
+                        <ProductTitle>{product.name}</ProductTitle>
+                        <ProductDescription>{product.description}</ProductDescription>
+                      </ProductInfo>
+                    </ProductItem>
+                  ))
+                ) : (
+                  <div style={{ textAlign: "center", padding: "3rem", color: "#6b7280" }}>
+                    <i className="fas fa-search" style={{ fontSize: "2rem", marginBottom: "1rem", display: "block" }}></i>
+                    <p>검색 결과가 없습니다.</p>
+                  </div>
+                )}
+              </ProductList>
+              {filteredProducts.length > 0 && (
+                <PaginationContainer>
+                  <PaginationButton
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <i className="fas fa-chevron-left"></i>
+                  </PaginationButton>
+                  <PageInfo>
+                    {currentPage} / {totalPages} 페이지 (총 {filteredProducts.length}개)
+                  </PageInfo>
+                  <PaginationButton
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <i className="fas fa-chevron-right"></i>
+                  </PaginationButton>
+                </PaginationContainer>
+              )}
+            </>
           )}
         </StepContent>
 
@@ -1406,13 +1676,22 @@ const UserMsgIndiv = () => {
               ></i>
             </PrimaryButton>
           ) : (
-            <PrimaryButton onClick={handleCopyMessage} disabled={!canProceed()}>
-              <i
-                className="fas fa-copy"
-                style={{ marginRight: "0.5rem" }}
-              ></i>
-              복사하기
-            </PrimaryButton>
+            <>
+              <SecondaryButton onClick={handleSaveMessage} disabled={!canProceed() || saveLoading}>
+                <i
+                  className={`fas ${saveLoading ? 'fa-spinner fa-spin' : 'fa-save'}`}
+                  style={{ marginRight: "0.5rem" }}
+                ></i>
+                {saveLoading ? "저장 중..." : "저장하기"}
+              </SecondaryButton>
+              <PrimaryButton onClick={handleCopyMessage} disabled={!canProceed()}>
+                <i
+                  className="fas fa-copy"
+                  style={{ marginRight: "0.5rem" }}
+                ></i>
+                복사하기
+              </PrimaryButton>
+            </>
           )}
         </ButtonGroup>
       </Container>

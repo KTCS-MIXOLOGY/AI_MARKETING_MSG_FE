@@ -148,9 +148,16 @@ export const messagesAPI = {
   generateSegmentMessage: (messageData) =>
     api.post('/executor/messages/generate/segment', messageData),
 
+  // 메시지 저장
+  saveMessage: (saveData) => api.post('/executor/messages/save', saveData),
+
+  // 메시지 목록 조회
+  getMessages: (params = {}) => api.get('/executor/messages', { params }),
+
+  // 메시지 상세 조회
+  getMessage: (messageId) => api.get(`/executor/messages/${messageId}`),
+
   // 아래 API들은 Backend에 미구현 - 추후 개발 필요
-  // getMessages: (params = {}) => api.get('/executor/messages', { params }),
-  // getMessage: (id) => api.get(`/executor/messages/${id}`),
   // updateMessage: (id, messageData) => api.put(`/executor/messages/${id}`, messageData),
   // deleteMessage: (id) => api.delete(`/executor/messages/${id}`),
 };
