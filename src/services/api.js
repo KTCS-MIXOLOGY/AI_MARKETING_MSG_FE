@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 70000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -58,6 +58,13 @@ export const authAPI = {
   logout: () => api.post('/auth/logout'),
 };
 
+// Profile API (관리자, 실행자 모두 사용 가능)
+export const profileAPI = {
+  getMyProfile: () => api.get('/users/me'),
+  updateMyProfile: (profileData) => api.patch('/users/me', profileData),
+  changePassword: (passwordData) => api.patch('/users/me/password', passwordData),
+};
+
 // Users API (Admin only)
 export const usersAPI = {
   getUsers: (params = {}) => api.get('/admin/users', { params }),
@@ -66,7 +73,7 @@ export const usersAPI = {
   updateUser: (id, userData) => api.patch(`/admin/users/${id}`, userData),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   approveUser: (id, role) => api.patch(`/admin/users/${id}/approve`, { role }),
-  rejectUser: (id) => api.put(`/admin/users/${id}/reject`),
+  rejectUser: (id, role) => api.patch(`/admin/users/${id}/reject`, { role }),
 };
 
 // Campaigns API
@@ -97,9 +104,9 @@ export const productsAPI = {
 // Customers API (EXECUTOR)
 export const customersAPI = {
   // searchType: ID, PHONE, NAME
-  searchCustomers: (searchType, searchValue, params = {}) =>
+  searchCustomers: (searchType, searchValue) =>
     api.get('/executor/customers/search', {
-      params: { searchType, searchValue, ...params }
+      params: { searchType, searchValue }
     }),
   getCustomer: (id) => api.get(`/executor/customers/${id}`),
 
@@ -133,14 +140,19 @@ export const messagesAPI = {
   // 메시지 생성 (개별 고객 또는 세그먼트 대상)
   createMessage: (messageData) => api.post('/executor/messages', messageData),
 
+  // 개별 고객 메시지 생성
+  generateIndividualMessage: (messageData) =>
+    api.post('/executor/messages/generate/individual', messageData),
+
+  // 세그먼트 대상 메시지 생성
+  generateSegmentMessage: (messageData) =>
+    api.post('/executor/messages/generate/segment', messageData),
+
   // 아래 API들은 Backend에 미구현 - 추후 개발 필요
   // getMessages: (params = {}) => api.get('/executor/messages', { params }),
   // getMessage: (id) => api.get(`/executor/messages/${id}`),
   // updateMessage: (id, messageData) => api.put(`/executor/messages/${id}`, messageData),
   // deleteMessage: (id) => api.delete(`/executor/messages/${id}`),
-
-  // AI 메시지 생성은 AI 통합 후 개발 필요
-  // generateMessage: (generationData) => api.post('/ai/messages/generate', generationData),
 };
 
 // Analytics API (미구현 - 추후 개발 필요)
@@ -149,6 +161,11 @@ export const analyticsAPI = {
   // getCampaignStats: (campaignId) => api.get(`/analytics/campaigns/${campaignId}`),
   // getCustomerStats: (customerId) => api.get(`/analytics/customers/${customerId}`),
   // getMessageStats: () => api.get('/analytics/messages'),
+};
+
+// Tone & Manner API (EXECUTOR)
+export const toneMannerAPI = {
+  getToneManners: () => api.post('/executor/tone-manner'),
 };
 
 // AI API (미구현 - AI 통합 후 개발 필요)

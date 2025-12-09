@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
-import { usersAPI } from "../services/api";
+import { profileAPI } from "../services/api";
 
 const SettingsContainer = styled.div`
   padding: 2rem;
@@ -249,15 +249,13 @@ const UserSettings = () => {
 
   // 사용자 상세 정보 조회
   useEffect(() => {
-    if (user?.userId) {
-      fetchUserDetail();
-    }
-  }, [user?.userId]);
+    fetchUserDetail();
+  }, []);
 
   const fetchUserDetail = async () => {
     try {
       setLoading(true);
-      const response = await usersAPI.getUser(user.userId);
+      const response = await profileAPI.getMyProfile();
 
       if (response?.data?.success && response?.data?.data) {
         const userData = response.data.data;
@@ -298,7 +296,7 @@ const UserSettings = () => {
         department: formData.department,
       };
 
-      const response = await usersAPI.updateUser(user.userId, updateData);
+      const response = await profileAPI.updateMyProfile(updateData);
 
       if (response?.data?.success) {
         toast.success("프로필이 성공적으로 저장되었습니다.");
@@ -313,8 +311,8 @@ const UserSettings = () => {
   };
 
   const handleChangePassword = async () => {
-    if (!formData.currentPassword || !formData.newPassword) {
-      toast.error("현재 비밀번호와 새 비밀번호를 입력해주세요.");
+    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+      toast.error("모든 비밀번호 필드를 입력해주세요.");
       return;
     }
 
@@ -329,19 +327,20 @@ const UserSettings = () => {
     }
 
     try {
-      // TODO: 비밀번호 변경 API가 백엔드에 구현되면 연결
-      // await authAPI.changePassword({
-      //   currentPassword: formData.currentPassword,
-      //   newPassword: formData.newPassword,
-      // });
+      const response = await profileAPI.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      });
 
-      toast.info("비밀번호 변경 기능은 준비 중입니다.");
-      setFormData((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
+      if (response?.data?.success) {
+        toast.success("비밀번호가 성공적으로 변경되었습니다.");
+        setFormData((prev) => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
+      }
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
@@ -603,7 +602,7 @@ const UserSettings = () => {
             </SectionTitle>
 
             <FeatureGrid>
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/dashboard")}>
                 <i className="fas fa-home"></i>
                 <h4>홈</h4>
                 <p>
@@ -612,7 +611,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/message")}>
                 <i className="fas fa-magic"></i>
                 <h4>메시지 생성</h4>
                 <p>
@@ -621,7 +620,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/customers")}>
                 <i className="fas fa-user-circle"></i>
                 <h4>고객 정보 조회</h4>
                 <p>
@@ -630,7 +629,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/history")}>
                 <i className="fas fa-history"></i>
                 <h4>발송 이력</h4>
                 <p>
@@ -639,7 +638,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/campaigns")}>
                 <i className="fas fa-bullhorn"></i>
                 <h4>캠페인 조회</h4>
                 <p>
@@ -648,7 +647,7 @@ const UserSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/products")}>
                 <i className="fas fa-box"></i>
                 <h4>상품 조회</h4>
                 <p>
@@ -656,8 +655,8 @@ const UserSettings = () => {
                   정보를 확인할 수 있습니다.
                 </p>
               </FeatureCard>
-
-              <FeatureCard>
+              
+              <FeatureCard onClick={() => setActiveTab("profile")}>
                 <i className="fas fa-cog"></i>
                 <h4>설정</h4>
                 <p>
