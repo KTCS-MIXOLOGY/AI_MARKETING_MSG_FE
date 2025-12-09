@@ -179,40 +179,6 @@ const FilterTitle = styled.div`
   }
 `;
 
-const RangeInputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-`;
-
-const RangeInput = styled.input`
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-
-  &:focus {
-    outline: none;
-    border-color: #e60012;
-  }
-`;
-
-const SelectInput = styled.select`
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  background: white;
-
-  &:focus {
-    outline: none;
-    border-color: #e60012;
-  }
-`;
-
 const CheckboxGroup = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -663,11 +629,11 @@ const UserMsgSeg = () => {
 
   // Campaigns
   const [campaigns, setCampaigns] = useState([]);
-  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [campaignsLoading, setCampaignsLoading] = useState(false); // eslint-disable-line no-unused-vars
 
   // Products
   const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false); // eslint-disable-line no-unused-vars
 
   // Generated Messages
   const [generatedMessages, setGeneratedMessages] = useState([]);
@@ -1173,11 +1139,39 @@ const UserMsgSeg = () => {
     }
   };
 
+  // 실패 로그 저장 함수
+  const saveFailureLog = async (errorMessage, segmentFilterData) => {
+    try {
+      const failureData = {
+        messageType: "SEGMENT",
+        messageGroupId: messageGroupId || null,
+        segmentFilter: segmentFilterData || null,
+        customerId: null,
+        campaignId: selectedCampaign || null,
+        productId: selectedProducts[0] || null,
+        toneId: selectedTones[0] || null,
+        messageContent: "메시지 생성 실패",
+        messageVersion: 0,
+        generationPrompt: `세그먼트 메시지 생성 실패 - 오류: ${errorMessage}`,
+        aiModelUsed: "GPT-4",
+        status: "FAILED"
+      };
+
+      await messagesAPI.saveMessage(failureData);
+      console.log("실패 로그 저장 완료");
+    } catch (saveError) {
+      console.error("실패 로그 저장 중 오류:", saveError);
+    }
+  };
+
   // AI 메시지 생성
   const generateMessages = async () => {
     if (!selectedCampaign || selectedProducts.length === 0 || selectedTones.length === 0) {
       return;
     }
+
+    // API 요청 데이터 구성을 try 블록 밖으로 이동 (실패 시 사용하기 위함)
+    let segmentFilterData = {};
 
     try {
       setMessagesLoading(true);
@@ -1186,7 +1180,7 @@ const UserMsgSeg = () => {
       const selectedToneObjects = toneManners.filter((tone) => selectedTones.includes(tone.toneId));
 
       // API 요청 데이터 구성 (백엔드 형식에 맞춤)
-      const segmentFilterData = {};
+      segmentFilterData = {};
 
       // 연령대 - 백엔드는 ageRange: { min, max } 형식을 기대
       const ageGroups = segmentFilter.ageGroups.filter(g => g !== "ALL");
@@ -1299,13 +1293,19 @@ const UserMsgSeg = () => {
       setGeneratedMessages(validMessages);
 
       if (validMessages.length === 0) {
-        toast.error("메시지 생성에 실패했습니다. 백엔드 서버의 /executor/messages/generate/segment API를 확인해주세요.");
+        const errorMsg = "백엔드 서버의 /executor/messages/generate/segment API 확인 필요";
+        toast.error("메시지 생성에 실패했습니다. " + errorMsg);
+        // 실패 로그 저장
+        await saveFailureLog(errorMsg, segmentFilterData);
       } else {
         toast.success(`${validMessages.length}개의 톤으로 메시지가 생성되었습니다.`);
       }
     } catch (error) {
       console.error("메시지 생성 실패:", error);
-      toast.error(`메시지 생성 중 오류가 발생했습니다: ${error.response?.data?.message || error.message}`);
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error(`메시지 생성 중 오류가 발생했습니다: ${errorMsg}`);
+      // 실패 로그 저장
+      await saveFailureLog(errorMsg, segmentFilterData);
     } finally {
       setMessagesLoading(false);
     }

@@ -677,11 +677,11 @@ const UserMsgIndiv = () => {
 
   // Campaigns
   const [campaigns, setCampaigns] = useState([]);
-  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [campaignsLoading, setCampaignsLoading] = useState(false); // eslint-disable-line no-unused-vars
 
   // Products
   const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false); // eslint-disable-line no-unused-vars
 
   // Generated Messages
   const [generatedMessages, setGeneratedMessages] = useState([]);
@@ -1018,6 +1018,31 @@ const UserMsgIndiv = () => {
     }
   };
 
+  // 실패 로그 저장 함수
+  const saveFailureLog = async (errorMessage) => {
+    try {
+      const failureData = {
+        messageType: "INDIVIDUAL",
+        messageGroupId: messageGroupId || null,
+        segmentFilter: null,
+        customerId: customerInfo?.id || null,
+        campaignId: selectedCampaign || null,
+        productId: selectedProducts[0] || null,
+        toneId: selectedTones[0] || null,
+        messageContent: "메시지 생성 실패",
+        messageVersion: 0,
+        generationPrompt: `개별 고객 메시지 생성 실패 - 오류: ${errorMessage}`,
+        aiModelUsed: "GPT-4",
+        status: "FAILED"
+      };
+
+      await messagesAPI.saveMessage(failureData);
+      console.log("실패 로그 저장 완료");
+    } catch (saveError) {
+      console.error("실패 로그 저장 중 오류:", saveError);
+    }
+  };
+
   // AI 메시지 생성
   const generateMessages = async () => {
     if (!customerInfo || !selectedCampaign || selectedProducts.length === 0 || selectedTones.length === 0) {
@@ -1074,13 +1099,19 @@ const UserMsgIndiv = () => {
       setGeneratedMessages(validMessages);
 
       if (validMessages.length === 0) {
-        toast.error("메시지 생성에 실패했습니다. 백엔드 서버의 /executor/messages/generate/individual API를 확인해주세요.");
+        const errorMsg = "백엔드 서버의 /executor/messages/generate/individual API 확인 필요";
+        toast.error("메시지 생성에 실패했습니다. " + errorMsg);
+        // 실패 로그 저장
+        await saveFailureLog(errorMsg);
       } else {
         toast.success(`${validMessages.length}개의 톤으로 메시지가 생성되었습니다.`);
       }
     } catch (error) {
       console.error("메시지 생성 실패:", error);
-      toast.error(`메시지 생성 중 오류가 발생했습니다: ${error.response?.data?.message || error.message}`);
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error(`메시지 생성 중 오류가 발생했습니다: ${errorMsg}`);
+      // 실패 로그 저장
+      await saveFailureLog(errorMsg);
     } finally {
       setMessagesLoading(false);
     }
