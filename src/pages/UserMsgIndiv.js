@@ -686,6 +686,8 @@ const UserMsgIndiv = () => {
   // Generated Messages
   const [generatedMessages, setGeneratedMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messageGroupId, setMessageGroupId] = useState(null); // 메시지 그룹 ID 저장
+  const [saveLoading, setSaveLoading] = useState(false);
 
   // Filters
   const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
@@ -1041,6 +1043,11 @@ const UserMsgIndiv = () => {
         const response = await messagesAPI.generateIndividualMessage(requestData);
 
         if (response.data.success) {
+          // messageGroupId 저장 (첫 번째 응답에서)
+          if (!messageGroupId && response.data.data.messageGroupId) {
+            setMessageGroupId(response.data.data.messageGroupId);
+          }
+
           // 생성된 모든 메시지 버전(3개)을 반환
           const messages = response.data.data.messages;
           return {
@@ -1048,6 +1055,7 @@ const UserMsgIndiv = () => {
             toneName: tone.toneName,
             description: tone.description,
             icon: getIconForTone(tone.toneName),
+            messageGroupId: response.data.data.messageGroupId, // 각 톤별 messageGroupId 저장
             versions: messages.map((msg) => ({
               id: msg.messageId,
               version: msg.version,
@@ -1111,6 +1119,63 @@ const UserMsgIndiv = () => {
     } catch (error) {
       console.error("복사 실패:", error);
       toast.error("메시지 복사에 실패했습니다.");
+    }
+  };
+
+  const handleSaveMessage = async () => {
+    if (!selectedMessage) {
+      toast.error("저장할 메시지를 선택해주세요.");
+      return;
+    }
+
+    // 선택된 메시지 찾기
+    let selectedVersion = null;
+    let selectedToneGroup = null;
+    for (const toneGroup of generatedMessages) {
+      const version = toneGroup.versions.find((v) => v.id === selectedMessage);
+      if (version) {
+        selectedVersion = version;
+        selectedToneGroup = toneGroup;
+        break;
+      }
+    }
+
+    if (!selectedVersion || !selectedToneGroup) {
+      toast.error("선택된 메시지를 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      setSaveLoading(true);
+
+      // API 요청 데이터 구성
+      const saveRequest = {
+        messageType: "INDIVIDUAL",
+        messageGroupId: selectedToneGroup.messageGroupId || messageGroupId,
+        segmentFilter: null, // INDIVIDUAL은 null
+        customerId: customerInfo.id,
+        campaignId: selectedCampaign,
+        productId: selectedProducts[0], // 첫 번째 선택 상품
+        toneId: selectedToneGroup.toneId,
+        messageContent: selectedVersion.content,
+        messageVersion: selectedVersion.version,
+        generationPrompt: `개별 고객 메시지 - ${selectedToneGroup.toneName} 톤`,
+        aiModelUsed: "GPT-4"
+      };
+
+      const response = await messagesAPI.saveMessage(saveRequest);
+
+      if (response.data.success) {
+        toast.success("메시지가 저장되었습니다!");
+        console.log("저장된 메시지:", response.data.data);
+      } else {
+        toast.error("메시지 저장에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("메시지 저장 실패:", error);
+      toast.error(`메시지 저장 중 오류가 발생했습니다: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -1580,13 +1645,22 @@ const UserMsgIndiv = () => {
               ></i>
             </PrimaryButton>
           ) : (
-            <PrimaryButton onClick={handleCopyMessage} disabled={!canProceed()}>
-              <i
-                className="fas fa-copy"
-                style={{ marginRight: "0.5rem" }}
-              ></i>
-              복사하기
-            </PrimaryButton>
+            <>
+              <SecondaryButton onClick={handleSaveMessage} disabled={!canProceed() || saveLoading}>
+                <i
+                  className={`fas ${saveLoading ? 'fa-spinner fa-spin' : 'fa-save'}`}
+                  style={{ marginRight: "0.5rem" }}
+                ></i>
+                {saveLoading ? "저장 중..." : "저장하기"}
+              </SecondaryButton>
+              <PrimaryButton onClick={handleCopyMessage} disabled={!canProceed()}>
+                <i
+                  className="fas fa-copy"
+                  style={{ marginRight: "0.5rem" }}
+                ></i>
+                복사하기
+              </PrimaryButton>
+            </>
           )}
         </ButtonGroup>
       </Container>
