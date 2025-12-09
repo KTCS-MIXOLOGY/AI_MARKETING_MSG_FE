@@ -365,13 +365,13 @@ const Register = () => {
                 역할 선택 <span className="required">*</span>
               </Label>
               <RoleSelection>
-                <RoleCard
+                {/* <RoleCard
                   selected={formData.role === "ADMIN"}
                   onClick={() => handleRoleSelect("ADMIN")}
                 >
                   <RoleTitle>관리자</RoleTitle>
                   <RoleDesc>캠페인, 상품, 권한 관리</RoleDesc>
-                </RoleCard>
+                </RoleCard> */}
                 <RoleCard
                   selected={formData.role === "EXECUTOR"}
                   onClick={() => handleRoleSelect("EXECUTOR")}
