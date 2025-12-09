@@ -110,6 +110,9 @@ export const customersAPI = {
     }),
   getCustomer: (id) => api.get(`/executor/customers/${id}`),
 
+  // Admin용 고객 조회
+  getAdminCustomer: (id) => api.get(`/admin/customers/${id}`),
+
   // 아래 API들은 Backend에 미구현 - 추후 개발 필요
   // getCustomerSegments: (customerId) => api.get(`/executor/customers/${customerId}/segments`),
   // getCustomerUsage: (customerId) => api.get(`/executor/customers/${customerId}/usage`),
@@ -151,11 +154,17 @@ export const messagesAPI = {
   // 메시지 저장
   saveMessage: (saveData) => api.post('/executor/messages/save', saveData),
 
-  // 메시지 목록 조회
+  // 메시지 목록 조회 (EXECUTOR)
   getMessages: (params = {}) => api.get('/executor/messages', { params }),
 
-  // 메시지 상세 조회
+  // 메시지 상세 조회 (EXECUTOR)
   getMessage: (messageId) => api.get(`/executor/messages/${messageId}`),
+
+  // Admin용 메시지 목록 조회
+  getAdminMessages: (params = {}) => api.get('/admin/messages', { params }),
+
+  // Admin용 메시지 상세 조회
+  getAdminMessage: (messageId) => api.get(`/admin/messages/${messageId}`),
 
   // 아래 API들은 Backend에 미구현 - 추후 개발 필요
   // updateMessage: (id, messageData) => api.put(`/executor/messages/${id}`, messageData),
