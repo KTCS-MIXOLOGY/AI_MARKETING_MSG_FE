@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
@@ -345,6 +346,8 @@ const STATUS_STYLE_MAP = {
 };
 
 const Campaigns = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // 전체 캠페인 목록
@@ -372,6 +375,19 @@ const Campaigns = () => {
   useEffect(() => {
     setCurrentPage(0);
   }, [statusFilter, typeFilter]);
+
+  // UserDashboard에서 전달받은 campaignId로 상세 모달 자동 열기
+  useEffect(() => {
+    if (location.state?.campaignId && allCampaigns.length > 0) {
+      const campaign = allCampaigns.find(c => c.id === location.state.campaignId);
+      if (campaign) {
+        setSelectedCampaign(campaign);
+        setIsDetailOpen(true);
+        // state 초기화 (뒤로가기 시 다시 열리지 않도록)
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, allCampaigns, navigate, location.pathname]);
 
   const fetchCampaigns = async () => {
     try {
@@ -536,8 +552,8 @@ const Campaigns = () => {
                     <Th>시작일</Th>
                     <Th>종료일</Th>
                     <Th>상태</Th>
-                    <Th>대상수</Th>
-                    <Th>생성자</Th>
+                    {/* <Th>대상수</Th>
+                    <Th>생성자</Th> */}
                   </tr>
                 </Thead>
                 <Tbody>
@@ -560,8 +576,8 @@ const Campaigns = () => {
                             {getStatusText(campaign.status)}
                           </StatusBadge>
                         </Td>
-                        <Td>{campaign.targetCount.toLocaleString()}</Td>
-                        <Td>{campaign.createdBy}</Td>
+                        {/* <Td>{campaign.targetCount.toLocaleString()}</Td>
+                        <Td>{campaign.createdBy}</Td> */}
                       </Tr>
                     ))
                   ) : (
