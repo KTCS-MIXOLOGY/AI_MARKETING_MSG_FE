@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
@@ -496,6 +497,8 @@ const STATUS_STYLE_MAP = {
 };
 
 const AdminCampaigns = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // 전체 캠페인 목록을 별도로 보관
@@ -534,11 +537,24 @@ const AdminCampaigns = () => {
     setCurrentPage(0);
   }, [statusFilter, typeFilter]);
 
+  // AdminDashboard에서 전달받은 campaignId로 상세 모달 자동 열기
+  useEffect(() => {
+    if (location.state?.campaignId && allCampaigns.length > 0) {
+      const campaign = allCampaigns.find(c => c.id === location.state.campaignId);
+      if (campaign) {
+        setSelectedCampaign(campaign);
+        setIsDetailOpen(true);
+        // state 초기화 (뒤로가기 시 다시 열리지 않도록)
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, allCampaigns, navigate, location.pathname]);
+
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
 
-      // 서버에서 넉넉하게 많이 가져오도록 설정 (필요하면 size 값 조정)
+      
       const response = await campaignsAPI.getCampaigns({
         page: 0,
         size: 1000,
@@ -874,8 +890,8 @@ const AdminCampaigns = () => {
                     <Th>상태</Th>
                     <Th>시작일</Th>
                     <Th>종료일</Th>
-                    <Th>대상수</Th>
-                    <Th>생성자</Th>
+                    {/* <Th>대상수</Th> */}
+                    {/* <Th>생성자</Th> */}
                     <Th>생성일</Th>
                     <Th>작업</Th>
                   </tr>
@@ -900,8 +916,8 @@ const AdminCampaigns = () => {
                         </Td>
                         <Td>{campaign.startDate}</Td>
                         <Td>{campaign.endDate}</Td>
-                        <Td>{campaign.targetCount.toLocaleString()}</Td>
-                        <Td>{campaign.createdBy}</Td>
+                        {/* <Td>{campaign.targetCount.toLocaleString()}</Td> */}
+                        {/* <Td>{campaign.createdBy}</Td> */}
                         <Td>{campaign.createdAt}</Td>
                         <ActionsCell>
                           <ActionsWrapper>

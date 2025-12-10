@@ -621,6 +621,17 @@ const UserHistory = () => {
   const totalSent = messages.filter((m) => m.status === "sent").length;
   const totalFailed = messages.filter((m) => m.status === "failed").length;
 
+  // 이번 달 생성 메시지 카운트
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisMonthMessages = messages.filter((msg) => {
+    if (msg.created_at) {
+      const msgDate = new Date(msg.created_at);
+      return msgDate >= thisMonthStart;
+    }
+    return false;
+  }).length;
+
   const showMessageDetail = async (message) => {
     try {
       setLoading(true);
@@ -724,13 +735,11 @@ const UserHistory = () => {
           <StatCard>
             <StatHeader>
               <div>
-                <StatTitle>평균 전환율</StatTitle>
-                <StatValue>
-                  15.8<span style={{ fontSize: "1.5rem" }}>%</span>
-                </StatValue>
+                <StatTitle>이번 달 생성 메시지</StatTitle>
+                <StatValue>{thisMonthMessages}</StatValue>
               </div>
               <StatIcon>
-                <i className="fas fa-chart-line" />
+                <i className="fas fa-calendar-check" />
               </StatIcon>
             </StatHeader>
           </StatCard>
