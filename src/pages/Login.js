@@ -420,7 +420,7 @@ const Login = () => {
         <LeftContent>
           <LeftLogo>
             <i className="fas fa-comments" />
-            KT
+            메시지 믹솔로지 (mixology)
           </LeftLogo>
 
           <IntroTitle>
@@ -453,7 +453,7 @@ const Login = () => {
           <RedHeader>
             <Logo>
               <i className="fas fa-comments" />
-              KT
+              메시지 믹솔로지
             </Logo>
             <Subtitle>AI 마케팅 메시지 생성 시스템</Subtitle>
           </RedHeader>
@@ -493,7 +493,7 @@ const Login = () => {
               <StyledLink to="/register">회원가입</StyledLink>
             </LinkGroup>
 
-            <DemoInfo>
+            {/* <DemoInfo>
               <DemoTitle>
                 <i className="fas fa-info-circle" />
                 데모 계정 정보
@@ -520,7 +520,7 @@ const Login = () => {
                   바로 로그인
                 </QuickIconButton>
               </DemoRow>
-            </DemoInfo>
+            </DemoInfo> */}
           </FormContainer>
         </LoginCard>
       </RightSection>
