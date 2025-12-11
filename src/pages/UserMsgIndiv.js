@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
@@ -657,10 +657,144 @@ const SecondaryButton = styled(Button)`
   }
 `;
 
+// AI Recommendation Styles
+const AIRecommendButton = styled.button`
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #e60012 0%, #b8000e 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 0, 18, 0.4);
+    background: linear-gradient(135deg, #b8000e 0%, #8a000a 100%);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  i {
+    font-size: 1.1rem;
+  }
+`;
+
+const RecommendationGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+`;
+
+const ProductRecommendationCard = styled.div`
+  background: white;
+  border: 2px solid ${props => props.selected ? '#e60012' : '#e5e7eb'};
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: ${props => props.selected ? '#fee2e2' : 'white'};
+
+  &:hover {
+    border-color: #e60012;
+    box-shadow: 0 8px 24px rgba(230, 0, 18, 0.15);
+    transform: translateY(-2px);
+  }
+`;
+
+const RecommendationRank = styled.div`
+  position: absolute;
+  top: -12px;
+  right: 1rem;
+  background: ${props =>
+    props.rank === 1 ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' :
+    props.rank === 2 ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)' :
+    'linear-gradient(135deg, #d97706 0%, #92400e 100%)'
+  };
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+  i {
+    font-size: 1rem;
+  }
+`;
+
+const ProductRecommendationContent = styled.div`
+  margin-top: 1rem;
+`;
+
+const ProductBadge = styled.span`
+  background: #f3f4f6;
+  color: #374151;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+`;
+
+const ProductPrice = styled.span`
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+`;
+
+const RelevanceScore = styled.span`
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+`;
+
+const RecommendationSection = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 3px solid #e60012;
+`;
+
+const RecommendButton = styled.button`
+  padding: 0.625rem 1.25rem;
+  background: ${props => props.secondary ? '#f3f4f6' : '#e60012'};
+  color: ${props => props.secondary ? '#374151' : 'white'};
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: ${props => props.secondary ? '#e5e7eb' : '#b8000e'};
+    transform: translateY(-1px);
+  }
+`;
+
 // ==================== Component ====================
 
 const UserMsgIndiv = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -709,6 +843,11 @@ const UserMsgIndiv = () => {
   const [selectedTones, setSelectedTones] = useState([]); // 선택된 톤 목록 (최대 3개)
   const [selectedMessage, setSelectedMessage] = useState(null);
 
+  // 상품 추천 관련 상태
+  const [productRecommendations, setProductRecommendations] = useState([]);
+  const [loadingProductRecommendations, setLoadingProductRecommendations] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+
   const steps = [
     { num: 1, title: "고객 검색" },
     { num: 2, title: "캠페인 선택" },
@@ -716,6 +855,42 @@ const UserMsgIndiv = () => {
     { num: 4, title: "톤 선택" },
     { num: 5, title: "메시지 생성 및 선택" },
   ];
+
+  // 추천 캠페인에서 넘어온 경우 자동 설정
+  useEffect(() => {
+    const initializeFromRecommendation = async () => {
+      // location.state에서 고객 및 캠페인 정보 확인
+      if (location.state?.customer && location.state?.campaignId) {
+        const { customer, campaignId } = location.state;
+
+        console.log("추천 캠페인에서 전달받은 데이터:", { customer, campaignId });
+
+        // 1단계: 고객 정보 자동 설정
+        setCustomerInfo({
+          id: customer.id,
+          name: customer.name,
+          displayName: customer.name, // 이미 익명화된 이름
+          phone: customer.phone,
+          email: customer.email || "-",
+          membershipLevel: customer.membership,
+        });
+        setCustomerFound(true);
+
+        // 2단계: 캠페인 자동 선택
+        setSelectedCampaign(campaignId);
+
+        // 3단계로 자동 이동
+        setCurrentStep(3);
+
+        // location.state 정리 (뒤로가기 시 재실행 방지)
+        navigate(location.pathname, { replace: true, state: {} });
+
+        toast.success("고객과 캠페인이 자동으로 선택되었습니다!");
+      }
+    };
+
+    initializeFromRecommendation();
+  }, [location.state, navigate, location.pathname]);
 
   // Tone & Manner 데이터 로드 (Step 4 진입 시)
   useEffect(() => {
@@ -989,6 +1164,96 @@ const UserMsgIndiv = () => {
         return [...prev, productId];
       }
     });
+  };
+
+  // 상품 추천 불러오기 함수
+  const fetchProductRecommendations = async () => {
+    if (!customerInfo || !selectedCampaign) {
+      toast.error("고객과 캠페인을 먼저 선택해주세요.");
+      return;
+    }
+
+    try {
+      setLoadingProductRecommendations(true);
+      console.log(`고객 ${customerInfo.id}, 캠페인 ${selectedCampaign}에 대한 상품 추천 요청 중...`);
+
+      const response = await customersAPI.getProductRecommendations(
+        customerInfo.id,
+        selectedCampaign
+      );
+      console.log("상품 추천 API 전체 응답:", response);
+
+      // 백엔드 응답 구조: { success: true, data: { recommendations: [...] } }
+      if (response.data && response.data.success) {
+        const dataObj = response.data.data;
+        console.log("data 객체:", dataObj);
+
+        // recommendations 배열 추출
+        const recommendationList = dataObj.recommendations || [];
+        console.log("추출된 추천 목록:", recommendationList);
+        console.log("추천 개수:", recommendationList.length);
+
+        if (Array.isArray(recommendationList) && recommendationList.length > 0) {
+          setProductRecommendations(recommendationList);
+          setShowRecommendations(true);
+          toast.success(`AI가 ${recommendationList.length}개의 상품을 추천했습니다!`);
+        } else {
+          console.warn("추천 목록이 비어있습니다");
+          setProductRecommendations([]);
+          toast.info("추천 가능한 상품이 없습니다.");
+        }
+      } else {
+        console.error("API 응답 실패 또는 success=false:", response.data);
+        setProductRecommendations([]);
+        toast.error("상품 추천을 불러오는데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("상품 추천 조회 실패:", error);
+      console.error("에러 응답:", error.response);
+      console.error("에러 데이터:", error.response?.data);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "상품 추천을 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      setProductRecommendations([]);
+    } finally {
+      setLoadingProductRecommendations(false);
+    }
+  };
+
+  // 추천 상품 개별 토글 함수
+  const handleRecommendationToggle = (productId) => {
+    setSelectedProducts((prev) => {
+      if (prev.includes(productId)) {
+        // 이미 선택된 경우 제거
+        return prev.filter((id) => id !== productId);
+      } else {
+        // 선택되지 않은 경우 추가 (최대 3개)
+        if (prev.length >= 3) {
+          toast.warning("최대 3개까지 선택 가능합니다.");
+          return prev;
+        }
+        return [...prev, productId];
+      }
+    });
+  };
+
+  // 추천 상품 자동 선택 함수 (상위 3개)
+  const handleApplyRecommendations = () => {
+    if (productRecommendations.length === 0) {
+      toast.warning("추천된 상품이 없습니다.");
+      return;
+    }
+
+    // 상위 3개 추천 상품 자동 선택
+    const topRecommendations = productRecommendations
+      .slice(0, 3)
+      .map(rec => rec.productId);
+
+    setSelectedProducts(topRecommendations);
+    toast.success(`AI 추천 상품 ${topRecommendations.length}개가 선택되었습니다!`);
   };
 
   const handleToneToggle = (toneId) => {
@@ -1435,6 +1700,138 @@ const UserMsgIndiv = () => {
             <i className="fas fa-box"></i>
             {selectedProductCategory ? `${selectedProductCategory} 상품 선택 (최대 3개)` : '상품 카테고리 선택'}
           </SectionTitle>
+
+          {/* AI 상품 추천 버튼 */}
+          {!selectedProductCategory && !showRecommendations && (
+            <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
+              <AIRecommendButton
+                onClick={fetchProductRecommendations}
+                disabled={loadingProductRecommendations || !customerInfo || !selectedCampaign}
+              >
+                {loadingProductRecommendations ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i>
+                    AI 추천 중...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-robot" style={{ marginRight: "0.5rem" }}></i>
+                    AI 상품 추천 받기
+                  </>
+                )}
+              </AIRecommendButton>
+              {(!customerInfo || !selectedCampaign) && (
+                <div style={{ fontSize: "0.875rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                  고객과 캠페인을 먼저 선택해주세요
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* AI 추천 결과 표시 */}
+          {productRecommendations.length > 0 && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#111827", margin: 0 }}>
+                  <i className="fas fa-sparkles" style={{ marginRight: "0.5rem", color: "#e60012" }}></i>
+                  AI 추천 상품
+                </h3>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <RecommendButton onClick={handleApplyRecommendations}>
+                    <i className="fas fa-check-double" style={{ marginRight: "0.5rem" }}></i>
+                    상위 3개 선택
+                  </RecommendButton>
+                  <RecommendButton onClick={fetchProductRecommendations} secondary disabled={loadingProductRecommendations}>
+                    <i className={`fas ${loadingProductRecommendations ? 'fa-spinner fa-spin' : 'fa-redo'}`} style={{ marginRight: "0.5rem" }}></i>
+                    새로 추천받기
+                  </RecommendButton>
+                </div>
+              </div>
+
+              <RecommendationGrid>
+                {productRecommendations.map((rec, index) => (
+                  <ProductRecommendationCard
+                    key={index}
+                    selected={selectedProducts.includes(rec.productId)}
+                    onClick={() => handleRecommendationToggle(rec.productId)}
+                  >
+                    <RecommendationRank rank={index + 1}>
+                      <i className={`fas fa-${index === 0 ? 'crown' : index === 1 ? 'star' : 'medal'}`} />
+                      <span>#{rec.rank}</span>
+                    </RecommendationRank>
+
+                    {selectedProducts.includes(rec.productId) && (
+                      <div style={{
+                        position: "absolute",
+                        top: "1rem",
+                        left: "1rem",
+                        background: "#10b981",
+                        color: "white",
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.75rem",
+                        fontWeight: "700",
+                        boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)"
+                      }}>
+                        <i className="fas fa-check"></i>
+                      </div>
+                    )}
+
+                    <ProductRecommendationContent>
+                      <h4 style={{ fontSize: "1rem", fontWeight: "600", color: "#111827", margin: "0 0 0.5rem 0" }}>
+                        {rec.productName}
+                      </h4>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                        <ProductBadge>{rec.productCategory}</ProductBadge>
+                        <ProductPrice>
+                          {rec.price?.toLocaleString()}원
+                          {rec.discountRate > 0 && (
+                            <span style={{ color: "#ef4444", marginLeft: "0.5rem" }}>
+                              {rec.discountRate}% 할인
+                            </span>
+                          )}
+                        </ProductPrice>
+                        {rec.relevanceScore && (
+                          <RelevanceScore>
+                            <i className="fas fa-chart-line" style={{ marginRight: "0.25rem" }}></i>
+                            적합도: {rec.relevanceScore}%
+                          </RelevanceScore>
+                        )}
+                      </div>
+
+                      <RecommendationSection>
+                        <strong style={{ color: "#374151", display: "block", marginBottom: "0.25rem" }}>
+                          <i className="fas fa-lightbulb" style={{ marginRight: "0.5rem", color: "#f59e0b" }}></i>
+                          추천 이유
+                        </strong>
+                        <p style={{ margin: 0, color: "#6b7280", lineHeight: "1.5" }}>{rec.reason}</p>
+                      </RecommendationSection>
+
+                      {rec.expectedBenefit && (
+                        <RecommendationSection>
+                          <strong style={{ color: "#374151", display: "block", marginBottom: "0.25rem" }}>
+                            <i className="fas fa-rocket" style={{ marginRight: "0.5rem", color: "#10b981" }}></i>
+                            기대 효과
+                          </strong>
+                          <p style={{ margin: 0, color: "#6b7280", lineHeight: "1.5" }}>{rec.expectedBenefit}</p>
+                        </RecommendationSection>
+                      )}
+                    </ProductRecommendationContent>
+                  </ProductRecommendationCard>
+                ))}
+              </RecommendationGrid>
+
+              <div style={{ textAlign: "center", marginTop: "1rem", color: "#6b7280", fontSize: "0.875rem" }}>
+                <i className="fas fa-info-circle" style={{ marginRight: "0.5rem" }}></i>
+                각 상품을 클릭하여 선택/해제하거나, "상위 3개 선택" 버튼으로 한번에 선택할 수 있습니다 (선택: {selectedProducts.length}/3)
+              </div>
+            </div>
+          )}
 
           {!selectedProductCategory ? (
             /* 카테고리 선택 화면 */
