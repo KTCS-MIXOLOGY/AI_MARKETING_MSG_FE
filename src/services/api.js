@@ -113,6 +113,18 @@ export const customersAPI = {
   // Admin용 고객 조회
   getAdminCustomer: (id) => api.get(`/admin/customers/${id}`),
 
+  // 고객 맞춤 캠페인 추천 (AI 기반)
+  getCampaignRecommendations: (customerId, productId = null) =>
+    api.get(`/executor/customers/${customerId}/campaigns/recommendations`, {
+      params: productId ? { productId } : {}
+    }),
+
+  // 고객 맞춤 상품 추천 (AI 기반)
+  getProductRecommendations: (customerId, campaignId = null) =>
+    api.get(`/executor/customers/${customerId}/products/recommendations`, {
+      params: campaignId ? { campaignId } : {}
+    }),
+
   // 아래 API들은 Backend에 미구현 - 추후 개발 필요
   // getCustomerSegments: (customerId) => api.get(`/executor/customers/${customerId}/segments`),
   // getCustomerUsage: (customerId) => api.get(`/executor/customers/${customerId}/usage`),

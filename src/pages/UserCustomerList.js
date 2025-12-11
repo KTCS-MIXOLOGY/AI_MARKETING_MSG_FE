@@ -633,6 +633,10 @@ const UserCustomer = () => {
   const [customer, setCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
 
+  // 캠페인 추천 상태
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+
   useEffect(() => {
     const fetchCustomerDetail = async () => {
       try {
@@ -739,6 +743,54 @@ const UserCustomer = () => {
       fetchCustomerDetail();
     }
   }, [id]);
+
+  // 캠페인 추천 불러오기 함수
+  const fetchRecommendations = async () => {
+    if (!customer) return;
+
+    try {
+      setLoadingRecommendations(true);
+      console.log(`고객 ${customer.id}에 대한 캠페인 추천 요청 중...`);
+
+      const response = await customersAPI.getCampaignRecommendations(customer.id);
+      console.log("추천 API 전체 응답:", response);
+
+      // 백엔드 응답 구조: { success: true, data: { recommendations: [...] } }
+      if (response.data && response.data.success) {
+        const dataObj = response.data.data;
+        console.log("data 객체:", dataObj);
+
+        // recommendations 배열 추출
+        const recommendationList = dataObj.recommendations || [];
+        console.log("추출된 추천 목록:", recommendationList);
+        console.log("추천 개수:", recommendationList.length);
+
+        if (Array.isArray(recommendationList) && recommendationList.length > 0) {
+          setRecommendations(recommendationList);
+          toast.success(`AI가 ${recommendationList.length}개의 캠페인을 추천했습니다!`);
+        } else {
+          console.warn("추천 목록이 비어있습니다");
+          setRecommendations([]);
+        }
+      } else {
+        console.error("API 응답 실패 또는 success=false:", response.data);
+        setRecommendations([]);
+      }
+    } catch (error) {
+      console.error("캠페인 추천 조회 실패:", error);
+      console.error("에러 응답:", error.response);
+      console.error("에러 데이터:", error.response?.data);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "캠페인 추천을 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      setRecommendations([]);
+    } finally {
+      setLoadingRecommendations(false);
+    }
+  };
 
   const handleCreateMessage = () => {
     if (!customer) return;
@@ -883,7 +935,7 @@ const UserCustomer = () => {
               onClick={() => setActiveTab("recommendations")}
             >
               <i className="fas fa-lightbulb" />
-              추천 액션
+              캠페인 AI 추천
             </TabButton>
           </TabList>
         </TabContainer>
@@ -1094,51 +1146,117 @@ const UserCustomer = () => {
         )}
 
         {activeTab === "recommendations" && (
-          <RecommendationGrid>
-            <RecommendationCard>
-              <RecommendationIcon>
-                <i className="fas fa-arrow-up" />
-              </RecommendationIcon>
-              <RecommendationTitle>
-                데이터 무제한 요금제 전환
-              </RecommendationTitle>
-              <RecommendationDescription>
-                AI가 고객 데이터를 분석하여 추천
-              </RecommendationDescription>
-              <RecommendationButton>
-                <i className="fas fa-paper-plane" />
-                메시지 생성
-              </RecommendationButton>
-            </RecommendationCard>
-
-            <RecommendationCard>
-              <RecommendationIcon>
-                <i className="fas fa-heart" />
-              </RecommendationIcon>
-              <RecommendationTitle>자동 결제 설정</RecommendationTitle>
-              <RecommendationDescription>
-                AI가 고객 데이터를 분석하여 추천
-              </RecommendationDescription>
-              <RecommendationButton>
-                <i className="fas fa-paper-plane" />
-                메시지 생성
-              </RecommendationButton>
-            </RecommendationCard>
-
-            <RecommendationCard>
-              <RecommendationIcon>
-                <i className="fas fa-wifi" />
-              </RecommendationIcon>
-              <RecommendationTitle>WiFi 공유기</RecommendationTitle>
-              <RecommendationDescription>
-                AI가 고객 데이터를 분석하여 추천
-              </RecommendationDescription>
-              <RecommendationButton>
-                <i className="fas fa-paper-plane" />
-                메시지 생성
-              </RecommendationButton>
-            </RecommendationCard>
-          </RecommendationGrid>
+          <>
+            {loadingRecommendations ? (
+              <CenterContainer>
+                <LoadingSpinner className="fas fa-spinner fa-spin" />
+                <LoadingText>
+                  AI가 고객 프로필을 분석하여 최적의 캠페인을 추천중입니다...
+                </LoadingText>
+                <LoadingText style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#9ca3af" }}>
+                  잠시만 기다려주세요 (최대 1분 소요)
+                </LoadingText>
+              </CenterContainer>
+            ) : recommendations.length === 0 ? (
+              <CenterContainer>
+                <EmptyIcon className="fas fa-lightbulb" />
+                <EmptyText>AI 캠페인 추천을 시작하려면 아래 버튼을 클릭하세요</EmptyText>
+                <Button
+                  onClick={fetchRecommendations}
+                  style={{ marginTop: "1.5rem" }}
+                >
+                  <i className="fas fa-magic" style={{ marginRight: "0.5rem" }} />
+                  AI 캠페인 추천 받기
+                </Button>
+              </CenterContainer>
+            ) : (
+              <>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: "1.5rem"
+                }}>
+                  <Button
+                    onClick={fetchRecommendations}
+                    style={{
+                      background: "#f3f4f6",
+                      color: "#4b5563",
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
+                    <i className="fas fa-redo" style={{ marginRight: "0.5rem" }} />
+                    새로 추천받기
+                  </Button>
+                </div>
+                <RecommendationGrid>
+                  {recommendations.map((rec, index) => (
+                    <RecommendationCard key={index}>
+                      <RecommendationIcon>
+                        <i className={`fas fa-${index === 0 ? 'crown' : index === 1 ? 'star' : 'bullhorn'}`} />
+                      </RecommendationIcon>
+                      <div style={{ marginBottom: "0.5rem" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            fontSize: "0.75rem",
+                            fontWeight: "700",
+                            background: rec.rank === 1 ? "#fef2f2" : "#fef9f3",
+                            color: rec.rank === 1 ? "#dc2626" : "#d97706",
+                          }}
+                        >
+                          추천 순위 #{rec.rank}
+                        </span>
+                        {rec.relevanceScore && (
+                          <span
+                            style={{
+                              marginLeft: "0.5rem",
+                              fontSize: "0.75rem",
+                              fontWeight: "600",
+                              color: "#059669",
+                            }}
+                          >
+                            적합도: {rec.relevanceScore}%
+                          </span>
+                        )}
+                      </div>
+                      <RecommendationTitle>
+                        {rec.campaignName || `캠페인 ID: ${rec.campaignId}`}
+                      </RecommendationTitle>
+                      <RecommendationDescription>
+                        <strong style={{ color: "#1a1a1a" }}>추천 이유:</strong><br />
+                        {rec.reason || "AI가 고객 데이터를 분석하여 추천"}
+                      </RecommendationDescription>
+                      {rec.expectedBenefit && (
+                        <RecommendationDescription style={{ marginTop: "0.5rem" }}>
+                          <strong style={{ color: "#1a1a1a" }}>기대 효과:</strong><br />
+                          {rec.expectedBenefit}
+                        </RecommendationDescription>
+                      )}
+                      <RecommendationButton
+                        onClick={() => {
+                          navigate("/message/individual", {
+                            state: {
+                              customer,
+                              campaignId: rec.campaignId,
+                              prefilledData: {
+                                phone: customer.phone,
+                                name: customer.name,
+                              },
+                            },
+                          });
+                        }}
+                      >
+                        <i className="fas fa-paper-plane" />
+                        메시지 생성
+                      </RecommendationButton>
+                    </RecommendationCard>
+                  ))}
+                </RecommendationGrid>
+              </>
+            )}
+          </>
         )}
       </Container>
     </Layout>
