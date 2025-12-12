@@ -253,8 +253,8 @@ const MessageStatus = styled.span`
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: ${(props) => (props.status === "sent" ? "#D1FAE5" : "#FEE2E2")};
-  color: ${(props) => (props.status === "sent" ? "#065F46" : "#991B1B")};
+  background: ${(props) => (props.isFailed ? "#FEE2E2" : "#D1FAE5")};
+  color: ${(props) => (props.isFailed ? "#991B1B" : "#065F46")};
 `;
 
 const MessageDate = styled.span`
@@ -408,6 +408,48 @@ const DetailValue = styled.span`
   font-size: 0.9375rem;
 `;
 
+const Pagination = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1.5rem 1rem;
+`;
+
+const PageButton = styled.button`
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.75rem;
+  border: 1px solid ${(props) => (props.active ? "#e60012" : "#d4d4d4")};
+  border-radius: 8px;
+  background: ${(props) => (props.active ? "#e60012" : "#ffffff")};
+  color: ${(props) => (props.active ? "#ffffff" : "#525252")};
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: ${(props) => (props.active ? "#c50010" : "#f5f5f5")};
+    border-color: ${(props) => (props.active ? "#c50010" : "#a3a3a3")};
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
+`;
+
+const PageInfo = styled.span`
+  font-size: 0.875rem;
+  color: #737373;
+  padding: 0 1rem;
+`;
+
 const UserHistory = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -420,7 +462,7 @@ const UserHistory = () => {
     endDate: "",
   });
 
-  const [messages, setMessages] = useState([]);
+  const [allMessages, setAllMessages] = useState([]); // 필터링되지 않은 전체 메시지
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -430,7 +472,41 @@ const UserHistory = () => {
   const [totalCount, setTotalCount] = useState(0); // eslint-disable-line no-unused-vars
   const [campaignList, setCampaignList] = useState([]); // 캠페인 목록
 
-  // 메시지 목록 불러오기
+  // 통계를 위한 전체 메시지 조회 (페이지네이션 없이)
+  const fetchAllMessagesForStats = useCallback(async () => {
+    try {
+      const response = await messagesAPI.getMessages({ page: 1, size: 10000 });
+
+      if (response.data.success) {
+        const data = response.data.data;
+        const formattedMessages = data.messages.map((msg) => ({
+          id: msg.messageId,
+          content: msg.contentPreview,
+          contentPreview: msg.contentPreview,
+          campaign: msg.campaignName,
+          status: "sent",
+          type: msg.messageType === "SEGMENT" ? "segment" : "individual",
+          product: msg.productName,
+          tone: msg.tone,
+          version: msg.messageVersion,
+          charCount: msg.characterCount,
+          aiModel: msg.aiModelUsed,
+          created_at: msg.createdAt,
+        }));
+
+        setAllMessages(formattedMessages);
+
+        // 캠페인 목록 추출 (중복 제거)
+        const campaigns = [...new Set(data.messages.map(msg => msg.campaignName).filter(Boolean))];
+        setCampaignList(campaigns);
+      }
+    } catch (error) {
+      console.error("전체 메시지 조회 실패:", error);
+      setAllMessages([]);
+    }
+  }, []);
+
+  // 메시지 목록 불러오기 (페이지네이션)
   const fetchMessages = useCallback(async (page = 1) => {
     try {
       setLoading(true);
@@ -438,7 +514,7 @@ const UserHistory = () => {
       // API 요청 파라미터 구성
       const params = {
         page: page,
-        size: 10,
+        size: 12,
       };
 
       // 기본 필터 추가
@@ -464,9 +540,10 @@ const UserHistory = () => {
 
       if (response.data.success) {
         const data = response.data.data;
-        let formattedMessages = data.messages.map((msg) => ({
+        const formattedMessages = data.messages.map((msg) => ({
           id: msg.messageId,
           content: msg.contentPreview,
+          contentPreview: msg.contentPreview, // contentPreview 필드 추가
           campaign: msg.campaignName,
           status: "sent", // API에서 status가 없으므로 기본값
           type: msg.messageType === "SEGMENT" ? "segment" : "individual",
@@ -479,23 +556,31 @@ const UserHistory = () => {
         }));
 
         // 백엔드가 필터링을 하지 않으므로 프론트엔드에서 필터링
+        let filteredMessages = formattedMessages;
+
         if (filters.type) {
-          formattedMessages = formattedMessages.filter(
+          filteredMessages = filteredMessages.filter(
             (msg) => msg.type === filters.type
           );
         }
         if (filters.status) {
-          formattedMessages = formattedMessages.filter(
-            (msg) => msg.status === filters.status
-          );
+          filteredMessages = filteredMessages.filter((msg) => {
+            const isFailed = msg.contentPreview === "메시지 생성 실패";
+            if (filters.status === "failed") {
+              return isFailed;
+            } else if (filters.status === "sent") {
+              return !isFailed;
+            }
+            return true;
+          });
         }
         if (filters.campaign) {
-          formattedMessages = formattedMessages.filter((msg) =>
+          filteredMessages = filteredMessages.filter((msg) =>
             msg.campaign?.toLowerCase().includes(filters.campaign.toLowerCase())
           );
         }
         if (filters.startDate || filters.endDate) {
-          formattedMessages = formattedMessages.filter((msg) => {
+          filteredMessages = filteredMessages.filter((msg) => {
             const msgDate = new Date(msg.created_at);
             const startDate = filters.startDate ? new Date(filters.startDate) : null;
             const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
@@ -506,27 +591,27 @@ const UserHistory = () => {
           });
         }
 
-        setMessages(formattedMessages);
-        setFilteredMessages(formattedMessages);
+        setFilteredMessages(filteredMessages);
         setCurrentPage(data.currentPage);
         setTotalPages(data.totalPages);
-        setTotalCount(formattedMessages.length); // 필터링 후 개수
-
-        // 캠페인 목록 추출 (중복 제거)
-        const campaigns = [...new Set(data.messages.map(msg => msg.campaignName).filter(Boolean))];
-        setCampaignList(campaigns);
+        setTotalCount(filteredMessages.length); // 필터링 후 개수
       }
     } catch (error) {
       console.error("메시지 목록 조회 실패:", error);
       toast.error("메시지 목록을 불러오는데 실패했습니다.");
       // 실패 시 빈 배열
-      setMessages([]);
       setFilteredMessages([]);
     } finally {
       setLoading(false);
     }
   }, [filters.status, filters.type, filters.campaign, filters.startDate, filters.endDate]);
 
+  // 통계를 위한 전체 메시지 조회 (컴포넌트 마운트 시 1회)
+  useEffect(() => {
+    fetchAllMessagesForStats();
+  }, [fetchAllMessagesForStats]);
+
+  // 페이지네이션된 메시지 조회
   useEffect(() => {
     fetchMessages(currentPage);
   }, [currentPage, fetchMessages]);
@@ -614,17 +699,22 @@ const UserHistory = () => {
     });
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, contentPreview) => {
+    // contentPreview가 "메시지 생성 실패"인 경우 실패로 표시
+    if (contentPreview === "메시지 생성 실패") {
+      return "✗ 생성실패";
+    }
     return status === "sent" ? "✓ 생성완료" : "✗ 생성실패";
   };
 
-  const totalSent = messages.filter((m) => m.status === "sent").length;
-  const totalFailed = messages.filter((m) => m.status === "failed").length;
+  // 필터링되지 않은 전체 메시지 기준으로 통계 계산 (state의 allMessages 사용)
+  const totalFailed = allMessages.filter((m) => m.contentPreview === "메시지 생성 실패").length;
+  const totalSent = allMessages.filter((m) => m.contentPreview !== "메시지 생성 실패").length;
 
-  // 이번 달 생성 메시지 카운트
+  // 이번 달 생성 메시지 카운트 (전체 메시지 기준)
   const now = new Date();
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const thisMonthMessages = messages.filter((msg) => {
+  const thisMonthMessages = allMessages.filter((msg) => {
     if (msg.created_at) {
       const msgDate = new Date(msg.created_at);
       return msgDate >= thisMonthStart;
@@ -700,7 +790,7 @@ const UserHistory = () => {
             <StatHeader>
               <div>
                 <StatTitle>생성한 메시지</StatTitle>
-                <StatValue>{messages.length}</StatValue>
+                <StatValue>{allMessages.length}</StatValue>
               </div>
               <StatIcon>
                 <i className="fas fa-file-alt" />
@@ -836,8 +926,8 @@ const UserHistory = () => {
                     onClick={() => showMessageDetail(msg)}
                   >
                     <MessageHeader>
-                      <MessageStatus status={msg.status || "sent"}>
-                        {getStatusText(msg.status || "sent")}
+                      <MessageStatus isFailed={msg.contentPreview === "메시지 생성 실패"}>
+                        {getStatusText(msg.status || "sent", msg.contentPreview)}
                       </MessageStatus>
                       <MessageDate>{formatDate(msg.created_at)}</MessageDate>
                     </MessageHeader>
@@ -855,15 +945,15 @@ const UserHistory = () => {
                         />
                         <span>
                           {msg.type === "individual"
-                            ? "개인 발송"
-                            : "세그먼트 발송"}
+                            ? "개인"
+                            : "세그먼트"}
                         </span>
                       </MetaItem>
                       <MetaItem>
                         <i className="fas fa-font" />
                         <span>{msg.charCount || msg.content?.length || 0}자</span>
                       </MetaItem>
-                      {msg.status === "sent" && (
+                      {/* {msg.status === "sent" && (
                         <MetaItem>
                           <i className="fas fa-check-circle" />
                           <span>전송 성공</span>
@@ -874,12 +964,44 @@ const UserHistory = () => {
                           <i className="fas fa-exclamation-circle" />
                           <span>전송 실패</span>
                         </MetaItem>
-                      )}
+                      )} */}
                     </MessageMeta>
                   </MessageCard>
                 ))}
               </MessagesGrid>
             </CardBody>
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <Pagination>
+                <PageButton
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <i className="fas fa-chevron-left" />
+                </PageButton>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PageButton
+                    key={page}
+                    active={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </PageButton>
+                ))}
+
+                <PageButton
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <i className="fas fa-chevron-right" />
+                </PageButton>
+
+                <PageInfo>
+                  {currentPage} / {totalPages} 페이지
+                </PageInfo>
+              </Pagination>
+            )}
           </Card>
         )}
       </HistoryContainer>
@@ -899,13 +1021,13 @@ const UserHistory = () => {
                 <DetailRow>
                   <DetailLabel>상태</DetailLabel>
                   <DetailValue>
-                    <MessageStatus status={selectedMessage.status || "sent"}>
-                      {getStatusText(selectedMessage.status || "sent")}
+                    <MessageStatus isFailed={selectedMessage.content === "메시지 생성 실패"}>
+                      {getStatusText(selectedMessage.status || "sent", selectedMessage.content)}
                     </MessageStatus>
                   </DetailValue>
                 </DetailRow>
                 <DetailRow>
-                  <DetailLabel>발송 유형</DetailLabel>
+                  <DetailLabel>생성 유형</DetailLabel>
                   <DetailValue>
                     <i
                       className={`fas fa-${
@@ -917,20 +1039,28 @@ const UserHistory = () => {
                       }}
                     />
                     {selectedMessage.type === "individual"
-                      ? "개인 발송"
-                      : "세그먼트 발송"}
+                      ? "개인"
+                      : "세그먼트"}
                   </DetailValue>
                 </DetailRow>
                 <DetailRow>
                   <DetailLabel>캠페인</DetailLabel>
                   <DetailValue>{selectedMessage.campaign}</DetailValue>
                 </DetailRow>
+                <DetailRow>
+                  <DetailLabel>상품</DetailLabel>
+                  <DetailValue>{selectedMessage.product}</DetailValue>
+                </DetailRow>
+                <DetailRow>
+                  <DetailLabel>톤</DetailLabel>
+                  <DetailValue>{selectedMessage.tone}</DetailValue>
+                </DetailRow>
                 {selectedMessage.type === "individual" && (
                   <DetailRow>
                     <DetailLabel>수신자</DetailLabel>
                     <DetailValue>
-                      {selectedMessage.recipientName} (
-                      {selectedMessage.recipientPhone})
+                      {selectedMessage.recipientName} 
+                      {selectedMessage.recipientPhone}
                     </DetailValue>
                   </DetailRow>
                 )}
