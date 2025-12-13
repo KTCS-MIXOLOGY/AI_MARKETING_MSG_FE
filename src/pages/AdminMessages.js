@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
@@ -98,7 +98,6 @@ const Td = styled.td`
   padding: 1.2rem 1rem;
   font-size: 0.9375rem;
   color: #1a1a1a;
-  white-space: nowrap;
 `;
 
 /* 뱃지 스타일 */
@@ -221,6 +220,45 @@ const ModalText = styled.p`
   margin: 0;
 `;
 
+/* 페이지네이션 */
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+`;
+
+const PageButton = styled.button`
+  min-width: 38px;
+  height: 38px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid ${(props) => (props.active ? "#e60012" : "#e5e7eb")};
+  background: ${(props) => (props.active ? "#e60012" : "#ffffff")};
+  color: ${(props) => (props.active ? "#ffffff" : "#4b5563")};
+  font-size: 0.875rem;
+  font-weight: ${(props) => (props.active ? "600" : "500")};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? "0.4" : "1")};
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: ${(props) => (props.active ? "#b8000e" : "#f9fafb")};
+    border-color: ${(props) => (props.active ? "#b8000e" : "#d1d5db")};
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
+`;
+
+const PageInfo = styled.span`
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0.5rem;
+`;
+
 const AdminMessages = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all");
@@ -230,6 +268,8 @@ const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 10; // 페이지당 10개씩 표시
 
   // 메시지 목록 불러오기
   const fetchMessages = useCallback(async () => {
@@ -390,14 +430,55 @@ const AdminMessages = () => {
     }).replace(/\. /g, "-").replace(/\./g, "");
   };
 
-  const filteredMessages = messages.filter((m) => {
-    const typeOk = typeFilter === "all" || m.type === typeFilter;
-    const statusOk = statusFilter === "all" || m.status === statusFilter;
-    const creatorOk = creatorFilter === "all" || m.createdBy === creatorFilter;
-    return typeOk && statusOk && creatorOk;
-  });
+  const filteredMessages = useMemo(() => {
+    return messages.filter((m) => {
+      const typeOk = typeFilter === "all" || m.type === typeFilter;
+      const statusOk = statusFilter === "all" || m.status === statusFilter;
+      const creatorOk = creatorFilter === "all" || m.createdBy === creatorFilter;
+      return typeOk && statusOk && creatorOk;
+    });
+  }, [messages, typeFilter, statusFilter, creatorFilter]);
+
+  // 페이지네이션된 메시지
+  const paginatedMessages = useMemo(() => {
+    const start = currentPage * pageSize;
+    const end = start + pageSize;
+    return filteredMessages.slice(start, end);
+  }, [filteredMessages, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredMessages.length / pageSize) || 0;
 
   const creators = [...new Set(messages.map((m) => m.createdBy).filter(Boolean))];
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  // 페이지 번호 생성
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(0, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return pageNumbers;
+  };
+
+  // 필터 변경 시 페이지를 0으로 리셋
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [typeFilter, statusFilter, creatorFilter]);
 
   // 메시지 상세 보기
   const handleViewMessage = async (message) => {
@@ -506,7 +587,7 @@ const AdminMessages = () => {
               </Thead>
 
               <Tbody>
-                {filteredMessages.map((msg) => (
+                {paginatedMessages.map((msg) => (
                   <Tr key={msg.id}>
                     <Td>{msg.type === "segment" ? "세그먼트" : "개인"}</Td>
                     <Td>{msg.target}</Td>
@@ -524,7 +605,7 @@ const AdminMessages = () => {
                     <Td>
                       <ViewButton
                         type="button"
-                        onClick={() => setSelectedMessage(msg)}
+                        onClick={() => handleViewMessage(msg)}
                       >
                         자세히 보기
                       </ViewButton>
@@ -535,6 +616,44 @@ const AdminMessages = () => {
             </Table>
           )}
         </TableContainer>
+
+        {/* 페이지네이션 */}
+        {!loading && filteredMessages.length > 0 && totalPages > 1 && (
+          <PaginationContainer>
+            <PageButton
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+            >
+              <i className="fas fa-chevron-left"></i>
+            </PageButton>
+
+            {getPageNumbers().map((pageNum) => (
+              <PageButton
+                key={pageNum}
+                active={pageNum === currentPage}
+                onClick={() => handlePageChange(pageNum)}
+              >
+                {pageNum + 1}
+              </PageButton>
+            ))}
+
+            <PageButton
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages - 1}
+            >
+              <i className="fas fa-chevron-right"></i>
+            </PageButton>
+
+            <PageInfo>
+              {filteredMessages.length > 0 && (
+                <>
+                  {currentPage * pageSize + 1}-
+                  {Math.min((currentPage + 1) * pageSize, filteredMessages.length)} / {filteredMessages.length}
+                </>
+              )}
+            </PageInfo>
+          </PaginationContainer>
+        )}
       </Container>
 
       {selectedMessage && (
