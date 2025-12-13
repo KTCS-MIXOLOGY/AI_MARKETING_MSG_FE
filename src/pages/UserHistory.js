@@ -462,7 +462,7 @@ const UserHistory = () => {
     endDate: "",
   });
 
-  const [allMessages, setAllMessages] = useState([]); // 필터링되지 않은 전체 메시지
+  const [allMessages, setAllMessages] = useState([]); // 필터링되지 않은 전체 메시지 (통계 + 필터링 공용)
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -472,9 +472,11 @@ const UserHistory = () => {
   const [totalCount, setTotalCount] = useState(0); // eslint-disable-line no-unused-vars
   const [campaignList, setCampaignList] = useState([]); // 캠페인 목록
 
-  // 통계를 위한 전체 메시지 조회 (페이지네이션 없이)
-  const fetchAllMessagesForStats = useCallback(async () => {
+  // 전체 메시지 조회 (통계 + 필터링 공용)
+  const fetchAllMessages = useCallback(async () => {
     try {
+      setLoading(true);
+
       const response = await messagesAPI.getMessages({ page: 1, size: 10000 });
 
       if (response.data.success) {
@@ -502,119 +504,72 @@ const UserHistory = () => {
       }
     } catch (error) {
       console.error("전체 메시지 조회 실패:", error);
-      setAllMessages([]);
-    }
-  }, []);
-
-  // 메시지 목록 불러오기 (페이지네이션)
-  const fetchMessages = useCallback(async (page = 1) => {
-    try {
-      setLoading(true);
-
-      // API 요청 파라미터 구성
-      const params = {
-        page: page,
-        size: 12,
-      };
-
-      // 기본 필터 추가
-      if (filters.status) {
-        params.status = filters.status;
-      }
-      if (filters.type) {
-        params.messageType = filters.type === "segment" ? "SEGMENT" : "INDIVIDUAL";
-      }
-      if (filters.campaign) {
-        params.campaignName = filters.campaign;
-      }
-      if (filters.startDate) {
-        params.startDate = filters.startDate;
-      }
-      if (filters.endDate) {
-        params.endDate = filters.endDate;
-      }
-
-      console.log("메시지 목록 조회 파라미터:", params);
-
-      const response = await messagesAPI.getMessages(params);
-
-      if (response.data.success) {
-        const data = response.data.data;
-        const formattedMessages = data.messages.map((msg) => ({
-          id: msg.messageId,
-          content: msg.contentPreview,
-          contentPreview: msg.contentPreview, // contentPreview 필드 추가
-          campaign: msg.campaignName,
-          status: "sent", // API에서 status가 없으므로 기본값
-          type: msg.messageType === "SEGMENT" ? "segment" : "individual",
-          product: msg.productName,
-          tone: msg.tone,
-          version: msg.messageVersion,
-          charCount: msg.characterCount,
-          aiModel: msg.aiModelUsed,
-          created_at: msg.createdAt,
-        }));
-
-        // 백엔드가 필터링을 하지 않으므로 프론트엔드에서 필터링
-        let filteredMessages = formattedMessages;
-
-        if (filters.type) {
-          filteredMessages = filteredMessages.filter(
-            (msg) => msg.type === filters.type
-          );
-        }
-        if (filters.status) {
-          filteredMessages = filteredMessages.filter((msg) => {
-            const isFailed = msg.contentPreview === "메시지 생성 실패";
-            if (filters.status === "failed") {
-              return isFailed;
-            } else if (filters.status === "sent") {
-              return !isFailed;
-            }
-            return true;
-          });
-        }
-        if (filters.campaign) {
-          filteredMessages = filteredMessages.filter((msg) =>
-            msg.campaign?.toLowerCase().includes(filters.campaign.toLowerCase())
-          );
-        }
-        if (filters.startDate || filters.endDate) {
-          filteredMessages = filteredMessages.filter((msg) => {
-            const msgDate = new Date(msg.created_at);
-            const startDate = filters.startDate ? new Date(filters.startDate) : null;
-            const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
-
-            if (startDate && msgDate < startDate) return false;
-            if (endDate && msgDate > endDate) return false;
-            return true;
-          });
-        }
-
-        setFilteredMessages(filteredMessages);
-        setCurrentPage(data.currentPage);
-        setTotalPages(data.totalPages);
-        setTotalCount(filteredMessages.length); // 필터링 후 개수
-      }
-    } catch (error) {
-      console.error("메시지 목록 조회 실패:", error);
       toast.error("메시지 목록을 불러오는데 실패했습니다.");
-      // 실패 시 빈 배열
-      setFilteredMessages([]);
+      setAllMessages([]);
     } finally {
       setLoading(false);
     }
-  }, [filters.status, filters.type, filters.campaign, filters.startDate, filters.endDate]);
+  }, []);
 
-  // 통계를 위한 전체 메시지 조회 (컴포넌트 마운트 시 1회)
-  useEffect(() => {
-    fetchAllMessagesForStats();
-  }, [fetchAllMessagesForStats]);
+  // 필터링 및 페이지네이션 처리
+  const applyFiltersAndPagination = useCallback(() => {
+    let filtered = [...allMessages];
 
-  // 페이지네이션된 메시지 조회
+    // 필터 적용
+    if (filters.type) {
+      filtered = filtered.filter((msg) => msg.type === filters.type);
+    }
+    if (filters.status) {
+      filtered = filtered.filter((msg) => {
+        const isFailed = msg.contentPreview === "메시지 생성 실패";
+        if (filters.status === "failed") {
+          return isFailed;
+        } else if (filters.status === "sent") {
+          return !isFailed;
+        }
+        return true;
+      });
+    }
+    if (filters.campaign) {
+      filtered = filtered.filter((msg) =>
+        msg.campaign?.toLowerCase().includes(filters.campaign.toLowerCase())
+      );
+    }
+    if (filters.startDate || filters.endDate) {
+      filtered = filtered.filter((msg) => {
+        const msgDate = new Date(msg.created_at);
+        const startDate = filters.startDate ? new Date(filters.startDate) : null;
+        const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+        if (startDate && msgDate < startDate) return false;
+        if (endDate && msgDate > endDate) return false;
+        return true;
+      });
+    }
+
+    // 페이지네이션
+    const pageSize = 12;
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedMessages = filtered.slice(startIndex, endIndex);
+
+    setFilteredMessages(paginatedMessages);
+    setTotalPages(totalPages);
+    setTotalCount(filtered.length);
+  }, [allMessages, filters, currentPage]);
+
+  // 전체 메시지 조회 (컴포넌트 마운트 시 1회)
   useEffect(() => {
-    fetchMessages(currentPage);
-  }, [currentPage, fetchMessages]);
+    fetchAllMessages();
+  }, [fetchAllMessages]);
+
+  // 필터 또는 페이지 변경 시 필터링 및 페이지네이션 적용
+  useEffect(() => {
+    if (allMessages.length > 0) {
+      applyFiltersAndPagination();
+    }
+  }, [allMessages, filters, currentPage, applyFiltersAndPagination]);
 
   // 이름 익명화 함수 (가운데 글자 * 처리)
   const anonymizeName = (name) => {
