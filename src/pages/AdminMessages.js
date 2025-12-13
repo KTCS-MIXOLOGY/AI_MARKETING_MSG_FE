@@ -329,16 +329,30 @@ const AdminMessages = () => {
               }
             }
 
+            // 실패 상태 판단: status 필드 또는 content 필드 중 하나라도 실패를 나타내면 실패
+            const isFailed =
+              msg.status === "FAILED" ||
+              msg.contentPreview === "메시지 생성 실패" ||
+              msg.summary === "메시지 생성 실패" ||
+              msg.messageContent === "메시지 생성 실패";
+
+            console.log(`[AdminMessages] 메시지 ${msg.messageId} 실패 여부:`, isFailed, {
+              contentPreview: msg.contentPreview,
+              summary: msg.summary,
+              messageContent: msg.messageContent,
+              status: msg.status
+            });
+
             return {
               id: msg.messageId,
               type: msg.messageType === "SEGMENT" ? "segment" : "individual",
               target: targetName,
               content: msg.summary || msg.contentPreview || msg.messageContent || "",
-              status: msg.status === "FAILED" ? "failed" : "completed",
+              status: isFailed ? "failed" : "completed",
               createdBy: creatorName,
               createdAt: msg.createdAt ? formatDateTime(msg.createdAt) : "-",
               processedCount: msg.processedCount || 1,
-              successCount: msg.successCount || (msg.status === "FAILED" ? 0 : 1),
+              successCount: msg.successCount || (isFailed ? 0 : 1),
               campaign: campaignName,
               fullContent: msg.messageContent || msg.summary || "",
               tone: msg.tone,

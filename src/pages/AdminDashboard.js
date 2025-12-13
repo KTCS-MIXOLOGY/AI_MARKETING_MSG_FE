@@ -444,6 +444,129 @@ const AlertTypeBadge = styled.span`
   margin-right: 0.4rem;
 `;
 
+/* 캠페인 TOP 5 */
+
+const RankingList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+`;
+
+const RankingItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+`;
+
+const RankNumber = styled.div`
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: ${(props) => (props.rank === 1 ? "#e60012" : "#f3f4f6")};
+  color: ${(props) => (props.rank === 1 ? "#ffffff" : "#6b7280")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+`;
+
+const RankInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const RankTitle = styled.div`
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const RankCategory = styled.div`
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.35rem;
+`;
+
+const ProgressBarContainer = styled.div`
+  width: 100%;
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+`;
+
+const ProgressBarFill = styled.div`
+  height: 100%;
+  background: linear-gradient(90deg, #e60012 0%, #f97373 100%);
+  border-radius: 999px;
+  width: ${(props) => props.percentage}%;
+  transition: width 0.3s ease;
+`;
+
+const RankCount = styled.div`
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e60012;
+  white-space: nowrap;
+  flex-shrink: 0;
+`;
+
+/* 예약 캠페인 */
+
+const UpcomingList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+`;
+
+const UpcomingItem = styled.div`
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: #fef3f2;
+  border: 1px solid #fee2e2;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #fecaca;
+    border-color: #fca5a5;
+    transform: translateY(-2px);
+  }
+`;
+
+const UpcomingTitle = styled.div`
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const UpcomingDate = styled.div`
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.15rem;
+`;
+
+const UpcomingSegment = styled.div`
+  font-size: 0.8rem;
+  color: #9ca3af;
+`;
+
 /* 컴포넌트 */
 
 const AdminDashboard = () => {
@@ -467,7 +590,9 @@ const AdminDashboard = () => {
     activeUsers: 0,
     activeCampaigns: [],
     recentMessages: [],
-    monthlyMessageCounts: [], 
+    weeklyMessageCounts: [],  // 월별 → 주간으로 변경
+    topCampaigns: [],         // 자주 사용하는 캠페인 TOP 5
+    upcomingCampaigns: [],    // 예약 상태 캠페인
   });
 
   // 상단 카드용 통계 데이터
@@ -502,50 +627,73 @@ const AdminDashboard = () => {
     },
   ];
 
-  // 월별 메시지 통계 계산 함수
-  const calculateMonthlyStats = (messages) => {
+  // 주간 메시지 통계 계산 함수 (최근 7일, 일~토)
+  const calculateWeeklyStats = (messages) => {
     const now = new Date();
-    const monthCounts = [];
+    const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+    const weekCounts = Array(7).fill(0);
 
-    console.log("=== 월별 통계 계산 시작 ===");
+    console.log("=== 주간 통계 계산 시작 ===");
     console.log("현재 날짜:", now.toISOString());
     console.log("총 메시지 수:", messages.length);
 
-    // 최근 6개월 데이터 준비
-    for (let i = 5; i >= 0; i--) {
-      const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
-      const monthLabel = `${targetDate.getMonth() + 1}월`;
+    // 최근 7일간의 메시지를 요일별로 집계
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      monthCounts.push({
-        month: monthLabel,
-        count: 0,
-        key: monthKey
-      });
-    }
-
-    console.log("준비된 월 배열:", JSON.stringify(monthCounts, null, 2));
-
-    // 메시지를 월별로 카운트
     messages.forEach((msg, index) => {
       if (msg.createdAt) {
         const msgDate = new Date(msg.createdAt);
-        const msgMonthKey = `${msgDate.getFullYear()}-${String(msgDate.getMonth() + 1).padStart(2, '0')}`;
-
-        console.log(`메시지 #${index + 1}: createdAt="${msg.createdAt}", 월 키="${msgMonthKey}"`);
-
-        const monthData = monthCounts.find(m => m.key === msgMonthKey);
-        if (monthData) {
-          monthData.count++;
-          console.log(`  ✓ ${msgMonthKey}에 추가됨, 현재 카운트: ${monthData.count}`);
-        } else {
-          console.log(`  ✗ ${msgMonthKey}는 최근 6개월에 포함되지 않음`);
+        if (msgDate >= sevenDaysAgo) {
+          const dayOfWeek = msgDate.getDay(); // 0(일) ~ 6(토)
+          weekCounts[dayOfWeek]++;
+          console.log(`메시지 #${index + 1}: ${weekDays[dayOfWeek]}요일에 추가, 현재 카운트: ${weekCounts[dayOfWeek]}`);
         }
       }
     });
 
-    console.log("=== 최종 월별 통계 ===", JSON.stringify(monthCounts, null, 2));
-    return monthCounts;
+    const result = weekDays.map((day, index) => ({
+      day,
+      count: weekCounts[index]
+    }));
+
+    console.log("=== 최종 주간 통계 ===", JSON.stringify(result, null, 2));
+    return result;
+  };
+
+  // 캠페인 사용 횟수 통계 계산 함수 (TOP 5) - campaignId 기반
+  const calculateTopCampaigns = (messages, campaigns) => {
+    const campaignCounts = {};
+
+    // campaignId별 메시지 수 집계
+    messages.forEach((msg) => {
+      if (msg.campaignId) {
+        if (!campaignCounts[msg.campaignId]) {
+          // campaigns 배열에서 해당 campaignId의 이름 찾기
+          const campaign = campaigns.find(c => c.campaignId === msg.campaignId);
+          campaignCounts[msg.campaignId] = {
+            id: msg.campaignId,
+            name: campaign?.name || msg.campaignName || `캠페인 ${msg.campaignId}`,
+            count: 0
+          };
+        }
+        campaignCounts[msg.campaignId].count++;
+      }
+    });
+
+    // 배열로 변환하고 정렬
+    const sorted = Object.values(campaignCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // 최대값 대비 퍼센티지 계산
+    const maxCount = sorted.length > 0 ? sorted[0].count : 1;
+    return sorted.map((item, index) => ({
+      rank: index + 1,
+      id: item.id,
+      name: item.name,
+      count: item.count,
+      percentage: Math.round((item.count / maxCount) * 100)
+    }));
   };
 
   // 대시보드 데이터 불러오기
@@ -612,14 +760,31 @@ const AdminDashboard = () => {
           console.log("추출된 메시지 리스트:", messageList);
 
           // 최근 메시지 6건 포맷팅 (summary 필드 사용)
-          recentMessages = messageList.slice(0, 6).map((msg) => ({
-            id: msg.messageId,
-            title: msg.summary?.substring(0, 30) + "..." || "메시지",
-            type: msg.messageType === "SEGMENT" ? "세그먼트" : "개인",
-            // createdBy: "관리자", // API 응답에 생성자 정보 없음 (createdBy는 ID만)
-            createdAt: msg.createdAt ? formatDateTime(msg.createdAt) : "-",
-            status: "completed", // API 응답에 status 필드 없음
-          }));
+          recentMessages = messageList.slice(0, 6).map((msg) => {
+            // 실패 상태 판단: status 필드 또는 content 필드 중 하나라도 실패를 나타내면 실패
+            const isFailed =
+              msg.status === "FAILED" ||
+              msg.contentPreview === "메시지 생성 실패" ||
+              msg.summary === "메시지 생성 실패" ||
+              msg.messageContent === "메시지 생성 실패";
+
+            console.log(`[AdminDashboard] 메시지 ${msg.messageId} 실패 여부:`, isFailed, {
+              contentPreview: msg.contentPreview,
+              summary: msg.summary,
+              messageContent: msg.messageContent,
+              status: msg.status
+            });
+
+            return {
+              id: msg.messageId,
+              title: msg.summary?.substring(0, 30) + "..." || "메시지",
+              type: msg.messageType === "SEGMENT" ? "세그먼트" : "개인",
+              // createdBy: "관리자", // API 응답에 생성자 정보 없음 (createdBy는 ID만)
+              createdAt: msg.createdAt ? formatDateTime(msg.createdAt) : "-",
+              status: isFailed ? "failed" : "completed",
+              campaignId: msg.campaignId, // 캠페인 상세페이지 연동용
+            };
+          });
 
           console.log("포맷팅된 최근 메시지:", recentMessages);
         } else {
@@ -629,9 +794,33 @@ const AdminDashboard = () => {
         console.error("메시지 데이터 조회 실패:", messagesRes.reason);
       }
 
-      // 월별 메시지 통계 계산 (최근 6개월)
-      const monthlyMessageCounts = calculateMonthlyStats(messageList);
-      console.log("월별 메시지 통계:", monthlyMessageCounts);
+      // 주간 메시지 통계 계산 (최근 7일, 일~토)
+      const weeklyMessageCounts = calculateWeeklyStats(messageList);
+      console.log("주간 메시지 통계:", weeklyMessageCounts);
+
+      // 자주 사용하는 캠페인 TOP 5 (campaignId 기반)
+      const topCampaigns = calculateTopCampaigns(messageList, campaignList);
+      console.log("캠페인 TOP 5:", topCampaigns);
+
+      // 예약 상태 캠페인 (곧 시작할 캠페인) - today는 위에서 이미 선언됨
+      const upcomingCampaigns = campaignList
+        .filter((c) => {
+          const startDate = new Date(c.startDate);
+          startDate.setHours(0, 0, 0, 0);
+
+          // 시작 전이거나 SCHEDULED 상태인 캠페인
+          return startDate > today || c.status === "SCHEDULED";
+        })
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+        .slice(0, 3)
+        .map((c) => ({
+          id: c.campaignId,
+          title: c.name,
+          startDate: c.startDate,
+          type: c.type || "일반",
+        }));
+
+      console.log("예약 상태 캠페인:", upcomingCampaigns);
 
       // 세그먼트 데이터 처리
       let segmentList = [];
@@ -684,7 +873,9 @@ const AdminDashboard = () => {
         activeUsers: approvedUsers.length,
         activeCampaigns,
         recentMessages,
-        monthlyMessageCounts,
+        weeklyMessageCounts,     // 월별 → 주간으로 변경
+        topCampaigns,            // 자주 사용하는 캠페인 TOP 5
+        upcomingCampaigns,       // 예약 상태 캠페인
       });
     } catch (error) {
       console.error("대시보드 데이터 조회 실패:", error);
@@ -714,26 +905,27 @@ const AdminDashboard = () => {
       .replace(/\./g, "");
   };
 
-  // 월별 메시지 발송량 (실제 데이터 사용)
-  const monthlyStats = dashboardData.monthlyMessageCounts.length > 0
-    ? dashboardData.monthlyMessageCounts
+  // 주간 메시지 발송량 (실제 데이터 사용) - 일~토
+  const weeklyStats = dashboardData.weeklyMessageCounts.length > 0
+    ? dashboardData.weeklyMessageCounts
     : [
-        { month: "1월", count: 0 },
-        { month: "2월", count: 0 },
-        { month: "3월", count: 0 },
-        { month: "4월", count: 0 },
-        { month: "5월", count: 0 },
-        { month: "6월", count: 0 },
+        { day: "일", count: 0 },
+        { day: "월", count: 0 },
+        { day: "화", count: 0 },
+        { day: "수", count: 0 },
+        { day: "목", count: 0 },
+        { day: "금", count: 0 },
+        { day: "토", count: 0 },
       ];
 
-  const monthlyData = monthlyStats.map(m => m.count);
-  const months = monthlyStats.map(m => m.month);
-  const maxValue = Math.max(...monthlyData, 80);
+  const weeklyData = weeklyStats.map(w => w.count);
+  const weekDays = weeklyStats.map(w => w.day);
+  const maxValue = Math.max(...weeklyData, 50);
 
-  const step = 100 / monthlyData.length;
+  const step = 100 / weeklyData.length;
   const barWidth = step * 0.45; // 막대 너비
 
-  const barData = monthlyData.map((value, index) => {
+  const barData = weeklyData.map((value, index) => {
     const ratio = value / maxValue; // 0부터 maxValue까지의 비율
     const barHeight = 40 * ratio + 10;
     const y = 60 - barHeight; // 하단 기준점 50 (0의 위치)
@@ -741,7 +933,7 @@ const AdminDashboard = () => {
     const x = centerX - barWidth / 2;
     return {
       value,
-      month: months[index],
+      day: weekDays[index],
       x,
       y,
       width: barWidth,
@@ -806,12 +998,12 @@ const AdminDashboard = () => {
           )}
         </StatsRow>
 
-        {/* 위쪽: 월별 현황 + 활성 캠페인 */}
+        {/* 위쪽: 주간 현황 + 캠페인 TOP 5 */}
         <TopGrid>
           <LargeCardBox>
             <CardHeader>
-              <CardTitle>월별 메시지 생성 현황</CardTitle>
-              <CardMeta>단위: 건</CardMeta>
+              <CardTitle>주간 메시지 생성 현황</CardTitle>
+              <CardMeta>최근 7일 기준</CardMeta>
             </CardHeader>
             <ChartWrapper>
               <ChartSvgWrapper
@@ -882,7 +1074,7 @@ const AdminDashboard = () => {
                             x: b.centerX,
                             y: b.y,
                             value: b.value,
-                            month: b.month,
+                            month: b.day + "요일",  // day로 변경
                           })
                         }
                       />
@@ -914,8 +1106,8 @@ const AdminDashboard = () => {
               </ChartSvgWrapper>
 
               <ChartXAxis>
-                {months.map((m) => (
-                  <span key={m}>{m}</span>
+                {weekDays.map((d) => (
+                  <span key={d}>{d}</span>
                 ))}
               </ChartXAxis>
             </ChartWrapper>
@@ -923,45 +1115,39 @@ const AdminDashboard = () => {
 
           <CardBox>
             <CardHeader>
-              <CardTitle>활성 캠페인</CardTitle>
-              <CardMeta>{dashboardData.activeCampaigns.length}개</CardMeta>
+              <CardTitle>자주 사용하는 캠페인 TOP 5</CardTitle>
+              <CardMeta>최근 30일 기준</CardMeta>
             </CardHeader>
 
-            <CampaignList>
+            <RankingList>
               {loading ? (
                 <div style={{ textAlign: "center", padding: "2rem", color: "#9ca3af" }}>
                   <i className="fas fa-spinner fa-spin" style={{ fontSize: "1.5rem" }}></i>
                 </div>
-              ) : dashboardData.activeCampaigns.length === 0 ? (
+              ) : dashboardData.topCampaigns.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "2rem", color: "#9ca3af" }}>
-                  활성 캠페인이 없습니다.
+                  사용 이력이 없습니다.
                 </div>
               ) : (
-                dashboardData.activeCampaigns.map((c) => (
-                  <CampaignItem key={c.id}>
-                    <CampaignMain>
-                      <CampaignIcon>
-                        <i className={c.icon} />
-                      </CampaignIcon>
-                      <CampaignText>
-                        <CampaignTitle>{c.title}</CampaignTitle>
-                        <CampaignTag>{c.tag}</CampaignTag>
-                        <CampaignDateRow>
-                          <span>{c.dateRange}</span>
-                        </CampaignDateRow>
-                      </CampaignText>
-                    </CampaignMain>
-                    <CampaignDetailButton
-                      type="button"
-                      onClick={() => navigate('/admin/campaigns', { state: { campaignId: c.id } })}
-                    >
-                      상세보기
-                      <i className="fas fa-arrow-right" />
-                    </CampaignDetailButton>
-                  </CampaignItem>
+                dashboardData.topCampaigns.map((campaign) => (
+                  <RankingItem
+                    key={campaign.rank}
+                    onClick={() => navigate('/admin/campaigns', { state: { campaignId: campaign.id } })}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <RankNumber rank={campaign.rank}>{campaign.rank}</RankNumber>
+                    <RankInfo>
+                      <RankTitle>{campaign.name}</RankTitle>
+                      <RankCategory>캠페인 타겟팅</RankCategory>
+                      <ProgressBarContainer>
+                        <ProgressBarFill percentage={campaign.percentage} />
+                      </ProgressBarContainer>
+                    </RankInfo>
+                    <RankCount>{campaign.count}회 사용</RankCount>
+                  </RankingItem>
                 ))
               )}
-            </CampaignList>
+            </RankingList>
           </CardBox>
         </TopGrid>
 
@@ -994,7 +1180,11 @@ const AdminDashboard = () => {
                 </RecentThead>
                 <RecentTbody>
                   {dashboardData.recentMessages.map((m) => (
-                    <RecentTr key={m.id}>
+                    <RecentTr
+                      key={m.id}
+                      onClick={() => navigate('/admin/messages', { state: { messageId: m.id } })}
+                      style={{ cursor: "pointer" }}
+                    >
                       <RecentTd>{m.title}</RecentTd>
                       <RecentTd>{m.type}</RecentTd>
                       {/* <RecentTd>{m.createdBy}</RecentTd> */}
@@ -1004,16 +1194,16 @@ const AdminDashboard = () => {
                           variant={
                             m.status === "completed"
                               ? "success"
-                              : m.status === "scheduled"
-                              ? "pending"
-                              : "danger"
+                              : m.status === "failed"
+                              ? "danger"
+                              : "pending"
                           }
                         >
                           {m.status === "completed"
                             ? "완료"
-                            : m.status === "scheduled"
-                            ? "예약"
-                            : "진행중"}
+                            : m.status === "failed"
+                            ? "실패"
+                            : "예약"}
                         </StatusBadge>
                       </RecentTd>
                     </RecentTr>
@@ -1025,33 +1215,55 @@ const AdminDashboard = () => {
 
           <CardBox>
             <CardHeader>
-              <CardTitle>시스템 통계 요약</CardTitle>
-              <CardMeta>주요 지표</CardMeta>
+              <CardTitle>이번 주 예정 캠페인</CardTitle>
+              <CardMeta>곧 시작할 캠페인</CardMeta>
             </CardHeader>
 
-            <AlertList>
-              <AlertItem>
-                <div>
-                  <AlertTypeBadge style={{ background: "#fee2e2", color: "#e60012" }}>캠페인</AlertTypeBadge>
-                  <AlertTitle>총 {dashboardData.totalCampaigns}개 캠페인 등록</AlertTitle>
+            <UpcomingList>
+              {loading ? (
+                <div style={{ textAlign: "center", padding: "2rem", color: "#9ca3af" }}>
+                  <i className="fas fa-spinner fa-spin" style={{ fontSize: "1.5rem" }}></i>
                 </div>
-                <AlertMeta>활성: {dashboardData.activeCampaigns.length}개</AlertMeta>
-              </AlertItem>
-              <AlertItem>
-                <div>
-                  <AlertTypeBadge style={{ background: "#dbeafe", color: "#2563eb" }}>메시지</AlertTypeBadge>
-                  <AlertTitle>총 {dashboardData.totalMessages}개 메시지 생성</AlertTitle>
+              ) : dashboardData.upcomingCampaigns.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "2rem", color: "#9ca3af" }}>
+                  예정된 캠페인이 없습니다.
                 </div>
-                <AlertMeta>최근 생성: {dashboardData.recentMessages.length}건</AlertMeta>
-              </AlertItem>
-              <AlertItem>
-                <div>
-                  <AlertTypeBadge style={{ background: "#dcfce7", color: "#16a34a" }}>세그먼트</AlertTypeBadge>
-                  <AlertTitle>{dashboardData.totalSegments}개 고객 세그먼트</AlertTitle>
-                </div>
-                <AlertMeta>활성 사용자: {dashboardData.activeUsers}명</AlertMeta>
-              </AlertItem>
-            </AlertList>
+              ) : (
+                dashboardData.upcomingCampaigns.map((campaign) => (
+                  <UpcomingItem
+                    key={campaign.id}
+                    onClick={() => navigate('/admin/campaigns', { state: { campaignId: campaign.id } })}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1 }}>
+                      <div style={{
+                        fontSize: "1.5rem",
+                        width: "40px",
+                        height: "40px",
+                        background: "#fff5f5",
+                        borderRadius: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}>
+                        📢
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <UpcomingTitle>{campaign.title}</UpcomingTitle>
+                        <UpcomingSegment>
+                          <i className="fas fa-tag" style={{ fontSize: "0.75rem" }}></i>
+                          {campaign.type}
+                        </UpcomingSegment>
+                      </div>
+                    </div>
+                    <UpcomingDate>
+                      <i className="fas fa-calendar-alt" style={{ fontSize: "0.8rem", marginRight: "0.35rem" }}></i>
+                      {campaign.startDate}
+                    </UpcomingDate>
+                  </UpcomingItem>
+                ))
+              )}
+            </UpcomingList>
           </CardBox>
         </BottomGrid>
       </DashboardContainer>
