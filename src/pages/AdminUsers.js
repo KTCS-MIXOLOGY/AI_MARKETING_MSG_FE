@@ -443,7 +443,7 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 15;
+  const pageSize = 10; // 페이지당 10개씩 표시
 
   // 확인 모달 상태
   const [confirmModal, setConfirmModal] = useState({

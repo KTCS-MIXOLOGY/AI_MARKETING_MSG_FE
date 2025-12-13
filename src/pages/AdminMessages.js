@@ -269,7 +269,7 @@ const AdminMessages = () => {
   const [loading, setLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 15;
+  const pageSize = 10; // 페이지당 10개씩 표시
 
   // 메시지 목록 불러오기
   const fetchMessages = useCallback(async () => {
