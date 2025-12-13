@@ -256,6 +256,8 @@ const UserDashboard = ({ onMenuClick }) => {
   const [dashboardData, setDashboardData] = useState({
     totalMessages: 0,
     completedMessages: 0,
+    failedMessages: 0,
+    activeCampaignsCount: 0,
     activeCampaigns: [],
     thisMonthMessages: 0,
   });
@@ -287,6 +289,14 @@ const UserDashboard = ({ onMenuClick }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      // 전체 활성 캠페인 수 계산
+      const activeCampaignsCount = campaignList.filter((c) => {
+        const endDate = new Date(c.endDate);
+        endDate.setHours(0, 0, 0, 0);
+        return c.status === "ACTIVE" && endDate >= today;
+      }).length;
+
+      // 활성 캠페인 목록 (상위 4개만 표시)
       const activeCampaigns = campaignList
         .filter((c) => {
           const endDate = new Date(c.endDate);
@@ -321,11 +331,17 @@ const UserDashboard = ({ onMenuClick }) => {
         toast.warning("메시지 데이터를 불러오는데 실패했습니다. 메시지 통계는 0으로 표시됩니다.");
       }
 
-      // 생성 완료 메시지 카운트
-      // API 응답에 status 필드가 없으므로, 데이터베이스에 저장된 모든 메시지를 "생성 완료"로 간주
-      const completedMessages = messageList.length;
+      // 생성 완료 메시지 카운트 (contentPreview가 "메시지 생성 실패"가 아닌 것만)
+      const completedMessages = messageList.filter((msg) =>
+        msg.contentPreview !== "메시지 생성 실패"
+      ).length;
 
-      // 이번 달 생성 메시지 카운트
+      // 생성 실패 메시지 카운트
+      const failedMessages = messageList.filter((msg) =>
+        msg.contentPreview === "메시지 생성 실패"
+      ).length;
+
+      // 이번 달 생성 메시지 카운트 (전체 메시지 기준)
       const now = new Date();
       const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const thisMonthMessages = messageList.filter((msg) => {
@@ -336,11 +352,13 @@ const UserDashboard = ({ onMenuClick }) => {
         return false;
       }).length;
 
-      console.log("총 메시지 수:", messageList.length, "완료된 메시지:", completedMessages, "이번 달 생성:", thisMonthMessages);
+      console.log("총 메시지 수:", messageList.length, "완료된 메시지:", completedMessages, "실패한 메시지:", failedMessages, "이번 달 생성:", thisMonthMessages, "활성 캠페인:", activeCampaignsCount);
 
       setDashboardData({
         totalMessages: messageList.length,
         completedMessages: completedMessages,
+        failedMessages: failedMessages,
+        activeCampaignsCount: activeCampaignsCount,
         activeCampaigns,
         thisMonthMessages,
       });
@@ -357,10 +375,10 @@ const UserDashboard = ({ onMenuClick }) => {
   }, [fetchDashboardData]);
 
   const stats = [
-    { label: "생성한 메시지", value: dashboardData.totalMessages },
-    { label: "생성 완료", value: dashboardData.completedMessages },
-    { label: "이번 달 생성 메시지", value: dashboardData.thisMonthMessages },
-    { label: "활성 캠페인", value: dashboardData.activeCampaigns.length },
+    { label: "생성한 메시지", value: dashboardData.totalMessages, icon: "fa-file-alt" },
+    { label: "생성 완료", value: dashboardData.completedMessages, icon: "fa-paper-plane" },
+    { label: "생성 실패", value: dashboardData.failedMessages, icon: "fa-exclamation-triangle" },
+    { label: "활성 캠페인", value: dashboardData.activeCampaignsCount, icon: "fa-bullhorn" },
   ];
 
   const handleNavigate = (path) => {
