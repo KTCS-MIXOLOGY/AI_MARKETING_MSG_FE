@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { authAPI } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -37,78 +36,72 @@ export const AuthProvider = ({ children }) => {
     try {
       const { username, password } = credentials;
 
-      // Backend API 호출
-      const response = await authAPI.login({ username, password });
+      // 관리자 계정
+      if (username === "admin" && password === "admin123") {
+        const adminUser = {
+          id: 1,
+          username: "admin",
+          name: "김영희",
+          email: "admin@ktcs.com",
+          role: "admin",
+          department: "관리팀",
+        };
 
-      if (response.data && response.data.success) {
-        const { accessToken, user: userData } = response.data.data;
-
-        // 사용자 상태 확인 (PENDING 상태 체크)
-        if (userData.status === "PENDING") {
-          toast.error("회원 권한이 필요합니다. 관리자 승인을 기다려주세요.");
-          return { success: false, error: "회원 권한이 필요합니다." };
-        }
-
-        // 토큰 및 사용자 정보 저장
-        localStorage.setItem("token", accessToken);
-        localStorage.setItem("user", JSON.stringify(userData));
-        setUser(userData);
-
-        toast.success(`${userData.name}님, 환영합니다!`);
-
-        // 역할에 따라 리다이렉트 (Backend는 ADMIN, EXECUTOR 대문자로 반환)
-        if (userData.role === "ADMIN") {
-          navigate("/admin");
-        } else if (userData.role === "EXECUTOR") {
-          navigate("/dashboard");
-        } else {
-          navigate("/dashboard");
-        }
-
+        localStorage.setItem("token", "admin_token_123");
+        localStorage.setItem("user", JSON.stringify(adminUser));
+        setUser(adminUser);
+        navigate("/admin");
         return { success: true };
-      } else {
-        throw new Error(response.data?.message || "로그인에 실패했습니다.");
       }
+
+      // 사용자 계정
+      if (username === "user" && password === "user123") {
+        const normalUser = {
+          id: 2,
+          username: "user01",
+          name: "김철수",
+          email: "user01@ktcs.com",
+          role: "user",
+          department: "마케팅팀",
+        };
+
+        localStorage.setItem("token", "user_token_456");
+        localStorage.setItem("user", JSON.stringify(normalUser));
+        setUser(normalUser);
+        navigate("/dashboard");
+        return { success: true };
+      }
+
+      // 로그인 실패
+      throw new Error("아이디 또는 비밀번호가 올바르지 않습니다.");
     } catch (error) {
-      // 에러 메시지 개선
-      let errorMessage = error.response?.data?.message || error.message;
-
-      // "An unexpected error occurred" 메시지를 한글로 변환
-      if (errorMessage === "An unexpected error occurred" || errorMessage.includes("unexpected error")) {
-        errorMessage = "회원 권한이 필요합니다. 관리자 승인을 기다려주세요.";
-      }
-
-      // 권한 관련 에러 메시지 처리
-      if (errorMessage.includes("PENDING") || errorMessage.includes("pending") ||
-          errorMessage.includes("승인") || errorMessage.includes("권한")) {
-        errorMessage = "회원 권한이 필요합니다. 관리자 승인을 기다려주세요.";
-      }
-
-      toast.error(errorMessage);
-      return { success: false, error: errorMessage };
+      toast.error(error.message || "로그인에 실패했습니다.");
+      return { success: false, error: error.message };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await authAPI.register(userData);
+      // 목업 회원가입 기능
+      const { username, password, name, email, department } = userData;
 
-      if (response.data && response.data.success) {
-        toast.success("회원가입이 완료되었습니다. 관리자 승인 후 이용 가능합니다.");
-
-        // 2초 후 로그인 페이지로 이동
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-
-        return { success: true };
-      } else {
-        throw new Error(response.data?.message || "회원가입에 실패했습니다.");
+      // 유효성 검사
+      if (!username || !password || !name || !email || !department) {
+        throw new Error("모든 필드를 입력해주세요.");
       }
+
+      // 회원가입 성공 처리
+      toast.success("회원가입이 완료되었습니다. 로그인해주세요.");
+
+      // 2초 후 로그인 페이지로 이동
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
+      return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      toast.error(errorMessage);
-      return { success: false, error: errorMessage };
+      toast.error(error.message || "회원가입에 실패했습니다.");
+      return { success: false, error: error.message };
     }
   };
 
@@ -121,22 +114,29 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await authAPI.updateProfile(profileData);
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
 
-      if (response.data && response.data.success) {
-        const updatedUser = response.data.data;
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        toast.success("프로필이 업데이트되었습니다.");
-
-        return { success: true };
-      } else {
-        throw new Error(response.data?.message || "프로필 업데이트에 실패했습니다.");
+      if (!response.ok) {
+        throw new Error("프로필 업데이트 실패");
       }
+
+      const responseData = await response.json();
+      localStorage.setItem("user", JSON.stringify(responseData.user));
+      setUser(responseData.user);
+      toast.success("프로필이 업데이트되었습니다.");
+
+      return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      toast.error(errorMessage);
-      return { success: false, error: errorMessage };
+      toast.error(error.message || "프로필 업데이트에 실패했습니다.");
+      return { success: false, error: error.message };
     }
   };
 
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     isAuthenticated: !!user,
-    isAdmin: user?.role === "ADMIN", // Backend는 대문자로 반환
+    isAdmin: user?.role === "admin",
   };
 
   return (

@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// Backend API Base URL (환경 변수에서 읽음)
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 70000,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -28,10 +27,6 @@ api.interceptors.request.use(
 // 응답 인터셉터
 api.interceptors.response.use(
   (response) => {
-    // Backend 응답 구조 확인 (success 필드가 있을 경우)
-    if (response.data && response.data.success === false) {
-      return Promise.reject(new Error(response.data.message || 'API 요청 실패'));
-    }
     return response;
   },
   (error) => {
@@ -41,11 +36,6 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
-
-    // Backend 에러 메시지 추출
-    const errorMessage = error.response?.data?.message || error.message;
-    console.error('API Error:', errorMessage);
-
     return Promise.reject(error);
   }
 );
@@ -58,162 +48,75 @@ export const authAPI = {
   logout: () => api.post('/auth/logout'),
 };
 
-// Profile API (관리자, 실행자 모두 사용 가능)
-export const profileAPI = {
-  getMyProfile: () => api.get('/users/me'),
-  updateMyProfile: (profileData) => api.patch('/users/me', profileData),
-  changePassword: (passwordData) => api.patch('/users/me/password', passwordData),
-};
-
-// Users API (Admin only)
+// Users API
 export const usersAPI = {
-  getUsers: (params = {}) => api.get('/admin/users', { params }),
-  getUser: (id) => api.get(`/admin/users/${id}`),
-  createUser: (userData) => api.post('/admin/users', userData),
-  updateUser: (id, userData) => api.patch(`/admin/users/${id}`, userData),
-  deleteUser: (id) => api.delete(`/admin/users/${id}`),
-  approveUser: (id, role) => api.patch(`/admin/users/${id}/approve`, { role }),
-  rejectUser: (id, role) => api.patch(`/admin/users/${id}/reject`, { role }),
+  getUsers: (params = {}) => api.get('/users', { params }),
+  getUser: (id) => api.get(`users/${id}`),
+  createUser: (userData) => api.post('/users', userData),
+  updateUser: (id, userData) => api.put(`users/${id}`, userData),
+  deleteUser: (id) => api.delete(`users/${id}`),
 };
 
 // Campaigns API
 export const campaignsAPI = {
-  // 조회 (ADMIN, EXECUTOR 모두 가능)
-  getCampaigns: (params = {}) => api.get('/campaigns', { params }),
-  getCampaign: (id) => api.get(`/campaigns/${id}`),
-
-  // 생성/수정/삭제 (ADMIN only)
-  createCampaign: (campaignData) => api.post('/admin/campaigns', campaignData),
-  updateCampaign: (id, campaignData) => api.put(`/admin/campaigns/${id}`, campaignData),
-  deleteCampaign: (id) => api.delete(`/admin/campaigns/${id}`),
+  getCampaigns: (params = {}) => api.get('campaigns', { params }),
+  getCampaign: (id) => api.get(`campaigns/${id}`),
+  createCampaign: (campaignData) => api.post('campaigns', campaignData),
+  updateCampaign: (id, campaignData) => api.put(`campaigns/${id}`, campaignData),
+  deleteCampaign: (id) => api.delete(`campaigns/${id}`),
 };
 
 // Products API
 export const productsAPI = {
-  // 조회 (ADMIN, EXECUTOR 모두 가능)
-  getProducts: (params = {}) => api.get('/products', { params }),
-  searchProducts: (name, params = {}) => api.get('/products/search', { params: { name, ...params } }),
-  getProduct: (id) => api.get(`/products/${id}`),
-
-  // 생성/수정/삭제 (ADMIN only)
-  createProduct: (productData) => api.post('/admin/products', productData),
-  updateProduct: (id, productData) => api.put(`/admin/products/${id}`, productData),
-  deleteProduct: (id) => api.delete(`/admin/products/${id}`),
+  getProducts: (params = {}) => api.get('products', { params }),
+  getProduct: (id) => api.get(`products/${id}`),
+  createProduct: (productData) => api.post('products', productData),
+  updateProduct: (id, productData) => api.put(`products/${id}`, productData),
+  deleteProduct: (id) => api.delete(`products/${id}`),
 };
 
-// Customers API (EXECUTOR)
+// Customers API
 export const customersAPI = {
-  // searchType: ID, PHONE, NAME
-  searchCustomers: (searchType, searchValue) =>
-    api.get('/executor/customers/search', {
-      params: { searchType, searchValue }
-    }),
-  getCustomer: (id) => api.get(`/executor/customers/${id}`),
-
-  // Admin용 고객 조회
-  getAdminCustomer: (id) => api.get(`/admin/customers/${id}`),
-
-  // 고객 맞춤 캠페인 추천 (AI 기반)
-  getCampaignRecommendations: (customerId, productId = null) =>
-    api.get(`/executor/customers/${customerId}/campaigns/recommendations`, {
-      params: productId ? { productId } : {}
-    }),
-
-  // 고객 맞춤 상품 추천 (AI 기반)
-  getProductRecommendations: (customerId, campaignId = null) =>
-    api.get(`/executor/customers/${customerId}/products/recommendations`, {
-      params: campaignId ? { campaignId } : {}
-    }),
-
-  // 아래 API들은 Backend에 미구현 - 추후 개발 필요
-  // getCustomerSegments: (customerId) => api.get(`/executor/customers/${customerId}/segments`),
-  // getCustomerUsage: (customerId) => api.get(`/executor/customers/${customerId}/usage`),
+  getCustomers: (params = {}) => api.get('customers', { params }),
+  getCustomer: (id) => api.get(`customers/${id}`),
+  searchCustomers: (query) => api.get(`customers/search?q=${query}`),
+  getCustomerSegments: (customerId) => api.get(`customers/${customerId}/segments`),
+  getCustomerUsage: (customerId) => api.get(`customers/${customerId}/usage`),
 };
 
-// Segments API (Admin & EXECUTOR)
+// Segments API
 export const segmentsAPI = {
-  // Admin API
-  getSegments: (params = {}) => api.get('/admin/customer-segments', { params }),
-  getSegment: (id) => api.get(`/admin/customer-segments/${id}`),
-
-  // Executor API (추후 사용)
-  // getExecutorSegments: (params = {}) => api.get('/executor/segments', { params }),
-  // getExecutorSegment: (id) => api.get(`/executor/segments/${id}`),
-
-  // 고객 세그먼트 필터링 기반 고객 수 계산
-  getSegmentCustomerCount: (filters) => api.post('/executor/segments/count', filters),
-
-  // 아래 API들은 Backend에 미구현 - 추후 개발 필요
-  // createSegment: (segmentData) => api.post('/admin/customer-segments', segmentData),
-  // updateSegment: (id, segmentData) => api.put(`/admin/customer-segments/${id}`, segmentData),
-  // deleteSegment: (id) => api.delete(`/admin/customer-segments/${id}`),
-  // getSegmentCustomers: (id) => api.get(`/admin/customer-segments/${id}/customers`),
+  getSegments: (params = {}) => api.get('segments', { params }),
+  getSegment: (id) => api.get(`segments/${id}`),
+  createSegment: (segmentData) => api.post('segments', segmentData),
+  updateSegment: (id, segmentData) => api.put(`segments/${id}`, segmentData),
+  deleteSegment: (id) => api.delete(`segments/${id}`),
+  getSegmentCustomers: (id) => api.get(`segments/${id}/customers`),
 };
 
-// Messages API (EXECUTOR)
+// Messages API
 export const messagesAPI = {
-  // 메시지 생성 (개별 고객 또는 세그먼트 대상)
-  createMessage: (messageData) => api.post('/executor/messages', messageData),
-
-  // 개별 고객 메시지 생성
-  generateIndividualMessage: (messageData) =>
-    api.post('/executor/messages/generate/individual', messageData),
-
-  // 세그먼트 대상 메시지 생성
-  generateSegmentMessage: (messageData) =>
-    api.post('/executor/messages/generate/segment', messageData),
-
-  // 메시지 저장
-  saveMessage: (saveData) => api.post('/executor/messages/save', saveData),
-
-  // 메시지 목록 조회 (EXECUTOR)
-  getMessages: (params = {}) => api.get('/executor/messages', { params }),
-
-  // 메시지 상세 조회 (EXECUTOR)
-  getMessage: (messageId) => api.get(`/executor/messages/${messageId}`),
-
-  // Admin용 메시지 목록 조회
-  getAdminMessages: (params = {}) => api.get('/admin/messages', { params }),
-
-  // Admin용 메시지 상세 조회
-  getAdminMessage: (messageId) => api.get(`/admin/messages/${messageId}`),
-
-  // 아래 API들은 Backend에 미구현 - 추후 개발 필요
-  // updateMessage: (id, messageData) => api.put(`/executor/messages/${id}`, messageData),
-  // deleteMessage: (id) => api.delete(`/executor/messages/${id}`),
+  getMessages: (params = {}) => api.get('messages', { params }),
+  getMessage: (id) => api.get(`messages/${id}`),
+  createMessage: (messageData) => api.post('messages', messageData),
+  updateMessage: (id, messageData) => api.put(`messages/${id}`, messageData),
+  deleteMessage: (id) => api.delete(`messages/${id}`),
+  generateMessage: (generationData) => api.post('messages/generate', generationData),
 };
 
-// Analytics API (미구현 - 추후 개발 필요)
+// Analytics API
 export const analyticsAPI = {
-  // getDashboardStats: () => api.get('/analytics/dashboard'),
-  // getCampaignStats: (campaignId) => api.get(`/analytics/campaigns/${campaignId}`),
-  // getCustomerStats: (customerId) => api.get(`/analytics/customers/${customerId}`),
-  // getMessageStats: () => api.get('/analytics/messages'),
+  getDashboardStats: () => api.get('analytics/dashboard'),
+  getCampaignStats: (campaignId) => api.get(`analytics/campaigns/${campaignId}`),
+  getCustomerStats: (customerId) => api.get(`analytics/customers/${customerId}`),
+  getMessageStats: () => api.get('analytics/messages'),
 };
 
-// Tone & Manner API (EXECUTOR)
-export const toneMannerAPI = {
-  getToneManners: () => api.post('/executor/tone-manner'),
-};
-
-// AI API (미구현 - AI 통합 후 개발 필요)
+// AI API
 export const aiAPI = {
-  // generateMessage: (prompt, context) => api.post('/ai/generate', { prompt, context }),
-  // analyzeSentiment: (text) => api.post('/ai/analyze-sentiment', { text }),
-  // optimizeMessage: (message, target) => api.post('/ai/optimize', { message, target }),
-};
-
-// Helper function: Backend 페이징 응답 데이터 추출
-export const extractPageData = (response) => {
-  // Backend 응답 구조: { success, data: { content, page, size, totalElements, totalPages }, ... }
-  if (response?.data?.data) {
-    return response.data.data;
-  }
-  // 단일 객체 응답
-  if (response?.data) {
-    return response.data;
-  }
-  return null;
+  generateMessage: (prompt, context) => api.post('ai/generate', { prompt, context }),
+  analyzeSentiment: (text) => api.post('ai/analyze-sentiment', { text }),
+  optimizeMessage: (message, target) => api.post('ai/optimize', { message, target }),
 };
 
 export default api;

@@ -97,7 +97,7 @@ const Header = () => {
 
   const getDisplayName = () => {
     if (!user) return "사용자";
-    if (user.role === "ADMIN") return `${user.name} 관리자`;
+    if (user.role === "admin") return `${user.name} 관리자`;
     return `${user.name} 사용자`;
   };
 
@@ -105,23 +105,15 @@ const Header = () => {
     if (!user) return "U";
     return user.name
       ? user.name.charAt(0)
-      : user.role === "ADMIN"
+      : user.role === "admin"
       ? "관"
-      : "실";
-  };
-
-  const handleUserInfoClick = () => {
-    if (user?.role === "ADMIN") {
-      navigate("/admin/settings");
-    } else {
-      navigate("/settings");
-    }
+      : "홍";
   };
 
   return (
     <HeaderContainer>
       <HeaderRight>
-        <UserInfo onClick={handleUserInfoClick}>
+        <UserInfo>
           <UserAvatar className="user-avatar">{getInitial()}</UserAvatar>
           <UserName>{getDisplayName()}</UserName>
         </UserInfo>

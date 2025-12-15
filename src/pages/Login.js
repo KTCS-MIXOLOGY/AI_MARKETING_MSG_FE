@@ -1,3 +1,5 @@
+// src/pages/Login.js (예시 경로)
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -8,163 +10,20 @@ import Card from "../components/common/Card";
 
 const LoginContainer = styled.div`
   display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 100vh;
-  background: #ffffff;
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-  }
-`;
-
-/* ===== 왼쪽 영역 (소개 섹션) ===== */
-
-const LeftSection = styled.div`
-  flex: 1;
-  background: linear-gradient(135deg, #e60012 0%, #b8000e 100%);
-  padding: 3.5rem 3rem; /* ✅ 스크롤 방지용 축소 */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: white;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -30%;
-    left: -5%;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  @media (max-width: 1024px) {
-    padding: 3rem 2rem;
-    min-height: 40vh;
-  }
-`;
-
-const LeftContent = styled.div`
-  position: relative;
-  z-index: 1;
-  max-width: 500px;
-`;
-
-const LeftLogo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2.5rem;
-  font-size: 1.75rem;
-  font-weight: 700;
-
-  i {
-    font-size: 2rem;
-  }
-`;
-
-const IntroTitle = styled.h1`
-  font-size: 2.3rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 1.25rem;
-
-  @media (max-width: 768px) {
-    font-size: 2rem;
-  }
-`;
-
-const IntroSubtitle = styled.p`
-  font-size: 1.05rem;
-  line-height: 1.7;
-  opacity: 0.95;
-  margin-bottom: 2.5rem;
-
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const FeatureList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-`;
-
-const FeatureItem = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-`;
-
-const FeatureIcon = styled.div`
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  i {
-    font-size: 1.2rem;
-    color: #ffffff;
-  }
-`;
-
-const FeatureText = styled.div`
-  flex: 1;
-`;
-
-const FeatureTitle = styled.div`
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-`;
-
-const FeatureDescription = styled.div`
-  font-size: 0.9rem;
-  opacity: 0.9;
-  line-height: 1.55;
-  word-break: keep-all; /* ✅ '다' 줄바꿈 방지 */
-`;
-
-/* ===== 오른쪽 영역 (로그인 폼) ===== */
-
-const RightSection = styled.div`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem; /* ✅ 스크롤 방지용 축소 */
-  background: #fafafa;
-
-  @media (max-width: 1024px) {
-    padding: 3rem 2rem;
-  }
+  background: #2d2d2d;
+  padding: 2rem;
 `;
 
 const LoginCard = styled(Card)`
   width: 100%;
   max-width: 470px;
+  margin: 0 auto;
   background: #ffffff;
   border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   padding: 0;
   overflow: hidden;
@@ -172,7 +31,7 @@ const LoginCard = styled(Card)`
 
 const RedHeader = styled.div`
   background: #e60012;
-  padding: 1.75rem 2rem 2rem; /* ✅ 축소 */
+  padding: 2rem 2rem 2.5rem;
   text-align: center;
   color: #ffffff;
 `;
@@ -182,30 +41,32 @@ const Logo = styled.div`
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 2.1rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.75rem;
 
   i {
-    font-size: 1.9rem;
+    font-size: 2rem;
   }
 `;
 
 const Subtitle = styled.p`
-  font-size: 0.9rem;
+  font-size: 0.9375rem;
   color: rgba(255, 255, 255, 0.95);
   font-weight: 400;
   margin: 0;
 `;
 
 const FormContainer = styled.div`
-  padding: 1.75rem 2.25rem 2rem; /* ✅ 축소 */
+  padding: 2rem 2.5rem;
 `;
 
-const Form = styled.form``;
+const Form = styled.form`
+  margin-bottom: 0;
+`;
 
 const FormGroup = styled.div`
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.5rem;
 `;
 
 const Label = styled.label`
@@ -228,33 +89,54 @@ const StyledInput = styled(Input)`
   border-radius: 8px;
   font-size: 0.8rem;
   background: #fafafa;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: #e60012;
     background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(230, 0, 18, 0.12);
+  }
+
+  &::placeholder {
+    color: #b3b3b3;
   }
 `;
 
 const LoginButton = styled(Button)`
   width: 100%;
-  padding: 0.85rem;
-  font-size: 0.93rem;
+  padding: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   border-radius: 6px;
   background: #e60012;
   border: none;
   color: white;
-  margin-top: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
 
   &:hover:not(:disabled) {
     background: #c50010;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 0.875rem;
   }
 `;
 
 const Divider = styled.div`
   text-align: center;
-  margin: 1.3rem 0;
+  margin: 1.5rem 0;
   color: #999999;
   font-size: 0.875rem;
 `;
@@ -263,12 +145,17 @@ const LinkGroup = styled.div`
   text-align: center;
   font-size: 0.875rem;
   color: #666666;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
 `;
 
 const StyledLink = styled(Link)`
   color: #e60012;
+  text-decoration: none;
   font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const ErrorMessage = styled.div`
@@ -278,14 +165,15 @@ const ErrorMessage = styled.div`
   border-radius: 6px;
   margin-bottom: 1rem;
   font-size: 0.875rem;
+  border: 1px solid #fecaca;
 `;
 
-/* ===== 데모 계정 ===== */
+/* ▼ 데모 계정 박스 – 두 번째 디자인 느낌 */
 
 const DemoInfo = styled.div`
   background: #f8f8f8;
   border-radius: 12px;
-  padding: 1.2rem;
+  padding: 1.25rem 1.25rem 1.4rem;
   border: 1px solid #eeeeee;
 `;
 
@@ -307,14 +195,15 @@ const DemoTitle = styled.div`
 const DemoRow = styled.div`
   background: #ffffff;
   border-radius: 10px;
-  padding: 0.7rem 1rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.825rem;
+  font-size: 0.875rem;
+  color: #333333;
 
   & + & {
-    margin-top: 0.5rem;
+    margin-top: 0.55rem;
   }
 `;
 
@@ -331,34 +220,62 @@ const DemoText = styled.div`
 const QuickIconButton = styled.button`
   border: none;
   background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 0.75rem;
   color: #666666;
-  cursor: pointer;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  i {
+    font-size: 0.8rem;
+  }
 
   &:hover {
+    background: #f2f2f2;
     color: #e60012;
   }
 `;
 
-/* ================== 로직 ================== */
+/* ▲ 여기까지 데모 계정 스타일 */
 
 const Login = () => {
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((p) => ({ ...p, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const validateForm = () => {
-    const e = {};
-    if (!formData.username.trim()) e.username = "아이디를 입력해주세요.";
-    if (!formData.password.trim()) e.password = "비밀번호를 입력해주세요.";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const newErrors = {};
+    if (!formData.username.trim()) {
+      newErrors.username = "아이디를 입력해주세요.";
+    }
+    if (!formData.password.trim()) {
+      newErrors.password = "비밀번호를 입력해주세요.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -368,162 +285,131 @@ const Login = () => {
     setLoading(true);
     try {
       const result = await login(formData);
-      if (result && !result.success) {
+      if (!result.success) {
         setErrors({ submit: result.error || "로그인에 실패했습니다." });
       }
-    } catch {
+    } catch (error) {
       setErrors({ submit: "로그인에 실패했습니다." });
     } finally {
       setLoading(false);
     }
   };
 
+  // 데모 계정 바로 로그인
   const handleQuickLogin = async (username, password) => {
+    setFormData({ username, password });
+    setErrors({});
     setLoading(true);
     try {
       const result = await login({ username, password });
-      if (result && !result.success) {
+      if (!result.success) {
         setErrors({ submit: result.error || "로그인에 실패했습니다." });
       }
-    } catch {
+    } catch (error) {
       setErrors({ submit: "로그인에 실패했습니다." });
     } finally {
       setLoading(false);
     }
   };
 
-  /* ✅ 아이콘 = FontAwesome 클래스, 1번 설명 줄바꿈 해결 */
-  const features = [
-    {
-      icon: "fas fa-wand-magic-sparkles",
-      title: "AI 기반 메시지 생성",
-      description:
-        "고객 데이터를 분석하여 최적화된 마케팅 메시지를 자동으로 생성합니다",
-    },
-    {
-      icon: "fas fa-chart-line",
-      title: "실시간 성과 분석",
-      description:
-        "캠페인 성과를 실시간으로 모니터링하고 인사이트를 제공합니다",
-    },
-    {
-      icon: "fas fa-users",
-      title: "고객 세그먼트 관리",
-      description:
-        "다양한 조건으로 고객을 세그먼트화하여 타겟 마케팅을 수행합니다",
-    },
-  ];
-
   return (
     <LoginContainer>
-      <LeftSection>
-        <LeftContent>
-          <LeftLogo>
+      <LoginCard>
+        <RedHeader>
+          <Logo>
             <i className="fas fa-comments" />
-            메시지 믹솔로지 (mixology)
-          </LeftLogo>
+            KT
+          </Logo>
+          <Subtitle>AI 마케팅 메시지 생성 시스템</Subtitle>
+        </RedHeader>
 
-          <IntroTitle>
-            AI 기반 <br /> 마케팅 메시지 <br /> 자동 생성 시스템
-          </IntroTitle>
+        <FormContainer>
+          {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
 
-          <IntroSubtitle>
-            고객 세그먼트와 캠페인을 선택하면 <br />
-            AI가 최적화된 메시지를 생성합니다
-          </IntroSubtitle>
+          <Form onSubmit={handleSubmit}>
+            <FormGroup>
+              <Label htmlFor="username">
+                아이디 <span className="required">*</span>
+              </Label>
+              <StyledInput
+                id="username"
+                name="username"
+                type="text"
+                placeholder="아이디를 입력하세요"
+                value={formData.username}
+                onChange={handleChange}
+                error={errors.username}
+                disabled={loading}
+              />
+            </FormGroup>
 
-          <FeatureList>
-            {features.map((f, i) => (
-              <FeatureItem key={i}>
-                <FeatureIcon>
-                  <i className={f.icon} />
-                </FeatureIcon>
-                <FeatureText>
-                  <FeatureTitle>{f.title}</FeatureTitle>
-                  <FeatureDescription>{f.description}</FeatureDescription>
-                </FeatureText>
-              </FeatureItem>
-            ))}
-          </FeatureList>
-        </LeftContent>
-      </LeftSection>
+            <FormGroup>
+              <Label htmlFor="password">
+                비밀번호 <span className="required">*</span>
+              </Label>
+              <StyledInput
+                id="password"
+                name="password"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                disabled={loading}
+              />
+            </FormGroup>
 
-      <RightSection>
-        <LoginCard>
-          <RedHeader>
-            <Logo>
-              <i className="fas fa-comments" />
-              메시지 믹솔로지
-            </Logo>
-            <Subtitle>AI 마케팅 메시지 생성 시스템</Subtitle>
-          </RedHeader>
+            <LoginButton type="submit" disabled={loading}>
+              <i className="fas fa-arrow-right" />
+              {loading ? "로그인 중..." : "로그인"}
+            </LoginButton>
+          </Form>
 
-          <FormContainer>
-            {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
+          <Divider>또는</Divider>
 
-            <Form onSubmit={handleSubmit}>
-              <FormGroup>
-                <Label>아이디 *</Label>
-                <StyledInput
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                />
-              </FormGroup>
+          <LinkGroup>
+            계정이 없으신가요? <StyledLink to="/register">회원가입</StyledLink>
+          </LinkGroup>
 
-              <FormGroup>
-                <Label>비밀번호 *</Label>
-                <StyledInput
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </FormGroup>
+          {/* 데모 계정 블록 */}
+          <DemoInfo>
+            <DemoTitle>
+              <i className="fas fa-info-circle" />
+              데모 계정 정보
+            </DemoTitle>
 
-              <LoginButton type="submit" disabled={loading}>
-                로그인
-              </LoginButton>
-            </Form>
+            <DemoRow>
+              <DemoText>
+                <strong>관리자:</strong>
+                <span>admin / admin123</span>
+              </DemoText>
+              <QuickIconButton
+                type="button"
+                onClick={() => handleQuickLogin("admin", "admin123")}
+                aria-label="관리자 계정으로 바로 로그인"
+              >
+                <i className="far fa-copy" />
+                <span>바로 로그인</span>
+              </QuickIconButton>
+            </DemoRow>
 
-            <Divider>또는</Divider>
-
-            <LinkGroup>
-              계정이 없으신가요?{" "}
-              <StyledLink to="/register">회원가입</StyledLink>
-            </LinkGroup>
-
-            {/* <DemoInfo>
-              <DemoTitle>
-                <i className="fas fa-info-circle" />
-                데모 계정 정보
-              </DemoTitle>
-
-              <DemoRow>
-                <DemoText>
-                  <strong>관리자:</strong>&nbsp;admin / admin123
-                </DemoText>
-                <QuickIconButton
-                  onClick={() => handleQuickLogin("admin", "admin123")}
-                >
-                  바로 로그인
-                </QuickIconButton>
-              </DemoRow>
-
-              <DemoRow>
-                <DemoText>
-                  <strong>실행자:</strong>&nbsp;user / user123
-                </DemoText>
-                <QuickIconButton
-                  onClick={() => handleQuickLogin("user", "user123")}
-                >
-                  바로 로그인
-                </QuickIconButton>
-              </DemoRow>
-            </DemoInfo> */}
-          </FormContainer>
-        </LoginCard>
-      </RightSection>
+            <DemoRow>
+              <DemoText>
+                <strong>실행자:</strong>
+                <span>user / user123</span>
+              </DemoText>
+              <QuickIconButton
+                type="button"
+                onClick={() => handleQuickLogin("user", "user123")}
+                aria-label="실행자 계정으로 바로 로그인"
+              >
+                <i className="far fa-copy" />
+                <span>바로 로그인</span>
+              </QuickIconButton>
+            </DemoRow>
+          </DemoInfo>
+        </FormContainer>
+      </LoginCard>
     </LoginContainer>
   );
 };

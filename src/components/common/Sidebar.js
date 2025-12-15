@@ -164,7 +164,7 @@ const Sidebar = ({ activeMenu }) => {
   ];
 
   const getMenuItems = () => {
-    return user?.role === "ADMIN" ? adminMenuItems : userMenuItems;
+    return user?.role === "admin" ? adminMenuItems : userMenuItems;
   };
 
   const handleMenuClick = (path) => {
@@ -176,7 +176,7 @@ const Sidebar = ({ activeMenu }) => {
   };
 
   const getLogoText = () => {
-    return user?.role === "ADMIN" ? "KT Admin" : "KT User";
+    return user?.role === "admin" ? "KT Admin" : "KT User";
   };
 
   return (
