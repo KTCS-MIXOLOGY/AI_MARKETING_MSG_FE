@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
 import Header from "../components/common/Header";
 import Sidebar from "../components/common/Sidebar";
+import { customersAPI } from "../services/api";
 
 const Container = styled.div`
   padding: 2rem;
@@ -460,175 +462,155 @@ const Button = styled.button`
   }
 `;
 
-const mockCustomers = {
-  1: {
-    id: "CUST001",
-    name: "김철수",
-    phone: "010-1234-5678",
-    email: "kim@example.com",
-    age: 35,
-    gender: "male",
-    region: "서울",
-    membership: "VIP",
-    status: "active",
-    joinDate: "2023-01-15",
-    contractEnd: "2026-01-14",
-    plan: "5G 프리미엄",
-    device: "갤럭시 S23 Ultra",
-    monthlyData: 25.3,
-    monthlyCharge: 119000,
-    recentPurchase: "2024-11-01",
-    totalSpent: 2856000,
-    satisfaction: 4.8,
-    churnRisk: "low",
-    preferredContact: "app",
-    lastContact: "2024-11-05",
-    usageDays: "1년 11개월",
-    segment: "VIP 고객",
-    rfm: {
-      recency: 5,
-      frequency: 5,
-      monetary: 5,
-      totalScore: 15,
-    },
-    usageHistory: [
-      { month: "1월", usage: 85 },
-      { month: "2월", usage: 90 },
-      { month: "3월", usage: 88 },
-      { month: "4월", usage: 92 },
-      { month: "5월", usage: 87 },
-      { month: "6월", usage: 89 },
-    ],
-    monthlyAverage: "180GB (과다)",
-    callTime: "월평균 320분",
-    lastActivity: "2024-11-20",
-  },
-  2: {
-    id: "CUST002",
-    name: "이영희",
-    phone: "010-9876-5432",
-    email: "lee@example.com",
-    age: 28,
-    gender: "female",
-    region: "부산",
-    membership: "일반",
-    status: "active",
-    joinDate: "2023-03-20",
-    contractEnd: "2026-03-19",
-    plan: "5G 라이트",
-    device: "아이폰 13",
-    monthlyData: 15.2,
-    monthlyCharge: 65000,
-    recentPurchase: "2024-10-28",
-    totalSpent: 1560000,
-    satisfaction: 4.2,
-    churnRisk: "low",
-    preferredContact: "sms",
-    lastContact: "2024-10-30",
-    usageDays: "1년 8개월",
-    segment: "일반 사용자",
-    rfm: {
-      recency: 4,
-      frequency: 3,
-      monetary: 3,
-      totalScore: 10,
-    },
-    usageHistory: [
-      { month: "1월", usage: 75 },
-      { month: "2월", usage: 82 },
-      { month: "3월", usage: 87 },
-      { month: "4월", usage: 85 },
-      { month: "5월", usage: 89 },
-      { month: "6월", usage: 85 },
-    ],
-    monthlyAverage: "120GB (적정)",
-    callTime: "월평균 180분",
-    lastActivity: "2024-11-15",
-  },
-  3: {
-    id: "CUST003",
-    name: "박지민",
-    phone: "010-5555-7777",
-    email: "park@example.com",
-    age: 24,
-    gender: "female",
-    region: "대전",
-    membership: "신규",
-    status: "dormant",
-    joinDate: "2024-09-01",
-    contractEnd: "2026-08-31",
-    plan: "5G 스탠다드",
-    device: "갤럭시 A54",
-    monthlyData: 8.5,
-    monthlyCharge: 55000,
-    recentPurchase: "2024-09-15",
-    totalSpent: 165000,
-    satisfaction: 3.5,
-    churnRisk: "high",
-    preferredContact: "call",
-    lastContact: "2024-09-20",
-    usageDays: "2개월",
-    segment: "신규 고객",
-    rfm: {
-      recency: 2,
-      frequency: 1,
-      monetary: 1,
-      totalScore: 4,
-    },
-    usageHistory: [
-      { month: "1월", usage: 45 },
-      { month: "2월", usage: 40 },
-      { month: "3월", usage: 38 },
-      { month: "4월", usage: 35 },
-      { month: "5월", usage: 30 },
-      { month: "6월", usage: 32 },
-    ],
-    monthlyAverage: "65GB (저사용)",
-    callTime: "월평균 90분",
-    lastActivity: "2024-10-05",
-  },
-  4: {
-    id: "CUST004",
-    name: "최민수",
-    phone: "010-7777-8888",
-    email: "choi@example.com",
-    age: 42,
-    gender: "male",
-    region: "인천",
-    membership: "VIP",
-    status: "active",
-    joinDate: "2022-12-10",
-    contractEnd: "2025-12-09",
-    plan: "5G 프리미엄 플러스",
-    device: "아이폰 15 Pro",
-    monthlyData: 30.7,
-    monthlyCharge: 135000,
-    recentPurchase: "2024-11-05",
-    totalSpent: 3240000,
-    satisfaction: 4.9,
-    churnRisk: "low",
-    preferredContact: "email",
-    lastContact: "2024-11-10",
-    usageDays: "2년",
-    segment: "VIP 고객",
-    rfm: {
-      recency: 5,
-      frequency: 5,
-      monetary: 5,
-      totalScore: 15,
-    },
-    usageHistory: [
-      { month: "1월", usage: 92 },
-      { month: "2월", usage: 95 },
-      { month: "3월", usage: 93 },
-      { month: "4월", usage: 90 },
-      { month: "5월", usage: 94 },
-      { month: "6월", usage: 91 },
-    ],
-    monthlyAverage: "200GB (과다)",
-    callTime: "월평균 420분",
-    lastActivity: "2024-11-22",
-  },
+const MembershipBadge = styled.span`
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  background: ${(props) => {
+    switch (props.level?.toUpperCase()) {
+      case "VVIP":
+        return "#DC2626";
+      case "VIP":
+        return "#1F2937";
+      case "GOLD":
+        return "#92400E";
+      case "SILVER":
+        return "#6B7280";
+      case "WHITE":
+        return "#FFFFFF";
+      case "BASIC":
+        return "#E5E7EB";
+      default:
+        return "#F3F4F6";
+    }
+  }};
+  color: ${(props) => {
+    switch (props.level?.toUpperCase()) {
+      case "VVIP":
+      case "VIP":
+      case "GOLD":
+      case "SILVER":
+        return "#ffffff";
+      case "WHITE":
+        return "#374151";
+      case "BASIC":
+        return "#6B7280";
+      default:
+        return "#6B7280";
+    }
+  }};
+  border: ${(props) => {
+    switch (props.level?.toUpperCase()) {
+      case "WHITE":
+        return "2px solid #D1D5DB";
+      default:
+        return "none";
+    }
+  }};
+  box-shadow: ${(props) => {
+    switch (props.level?.toUpperCase()) {
+      case "VVIP":
+        return "0 2px 8px rgba(220, 38, 38, 0.3)";
+      case "VIP":
+        return "0 2px 8px rgba(0, 0, 0, 0.3)";
+      case "GOLD":
+        return "0 2px 8px rgba(146, 64, 14, 0.3)";
+      case "SILVER":
+        return "0 2px 6px rgba(107, 114, 128, 0.3)";
+      case "WHITE":
+        return "0 2px 6px rgba(0, 0, 0, 0.1)";
+      default:
+        return "none";
+    }
+  }};
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-transform: uppercase;
+
+  i {
+    font-size: 0.875rem;
+  }
+`;
+
+// 지역 코드 매핑
+const regionMap = {
+  SEOUL: "서울",
+  BUSAN: "부산",
+  DAEGU: "대구",
+  INCHEON: "인천",
+  GWANGJU: "광주",
+  DAEJEON: "대전",
+  ULSAN: "울산",
+  SEJONG: "세종",
+  GYEONGGI: "경기",
+  GANGWON: "강원",
+  CHUNGBUK: "충북",
+  CHUNGNAM: "충남",
+  JEONBUK: "전북",
+  JEONNAM: "전남",
+  GYEONGBUK: "경북",
+  GYEONGNAM: "경남",
+  JEJU: "제주",
+};
+
+// 성별 매핑
+const genderMap = {
+  MALE: "남성",
+  FEMALE: "여성",
+  OTHER: "기타",
+};
+
+// 날짜 포맷팅 함수
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
+
+// 가입 기간 계산 함수
+const calculateUsageDays = (joinDate) => {
+  if (!joinDate) return "-";
+  const join = new Date(joinDate);
+  const now = new Date();
+  const diffTime = Math.abs(now - join);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const years = Math.floor(diffDays / 365);
+  const months = Math.floor((diffDays % 365) / 30);
+
+  if (years > 0 && months > 0) {
+    return `${years}년 ${months}개월`;
+  } else if (years > 0) {
+    return `${years}년`;
+  } else if (months > 0) {
+    return `${months}개월`;
+  } else {
+    return `${diffDays}일`;
+  }
+};
+
+// 이름 익명화 함수
+const anonymizeName = (name) => {
+  if (!name || name === "-") return "-";
+
+  const length = name.length;
+
+  if (length === 1) {
+    return name; // 1글자는 그대로 표시
+  } else if (length === 2) {
+    return name[0] + "*"; // 2글자: 첫 글자만 표시
+  } else if (length === 3) {
+    return name[0] + "*" + name[2]; // 3글자: 첫/끝 글자 표시
+  } else {
+    // 4글자 이상: 첫 글자 + 중간 * + 끝 글자
+    const middle = "*".repeat(length - 2);
+    return name[0] + middle + name[length - 1];
+  }
 };
 
 const getRfmLevel = (score) => {
@@ -643,7 +625,7 @@ const getSegmentLevel = (customer) => {
   return "low";
 };
 
-const UserCustomer360 = () => {
+const UserCustomer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -651,21 +633,164 @@ const UserCustomer360 = () => {
   const [customer, setCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
 
+  // 캠페인 추천 상태
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+
   useEffect(() => {
-    setLoading(true);
+    const fetchCustomerDetail = async () => {
+      try {
+        setLoading(true);
+        const response = await customersAPI.getCustomer(id);
 
-    let selected = mockCustomers[id];
-    if (!selected) {
-      selected = Object.values(mockCustomers).find((c) => c.id === id);
+        if (response.data && response.data.success) {
+          const apiData = response.data.data;
+
+          // API 데이터를 UI 형식에 맞게 매핑
+          const mappedCustomer = {
+            id: apiData.customerId,
+            name: anonymizeName(apiData.name) || "-",
+            phone: apiData.phoneNumber || "-",
+            email: "-", // API에 email 필드 없음
+            age: apiData.age || "-",
+            gender: apiData.gender || "-",
+            region: regionMap[apiData.region] || apiData.region || "-",
+            membership: apiData.membershipLevel || "-",
+            status: "active", // API에 status 필드 없음
+            joinDate: formatDate(apiData.joinDate),
+            contractEnd: formatDate(apiData.contractEndDate),
+            plan: apiData.currentPlan || "-",
+            device: apiData.currentDevice || "-",
+            monthlyData: apiData.avgDataUsageGb
+              ? `${apiData.avgDataUsageGb.toFixed(1)}GB`
+              : "-",
+            usageDays: calculateUsageDays(apiData.joinDate),
+            segment: `${apiData.membershipLevel || "-"} 고객`,
+            recentPurchase: formatDate(apiData.lastPurchaseDate),
+            recencyDays: apiData.recencyDays || 0,
+            recentPurchases: apiData.recentPurchases || [],
+            preferredCategories: apiData.preferredCategories || [],
+            // RFM 분석 데이터
+            rfm: {
+              // Recency: 마지막 구매 후 경과일 (최근성)
+              recency:
+                apiData.recencyDays <= 30
+                  ? 5
+                  : apiData.recencyDays <= 90
+                  ? 4
+                  : apiData.recencyDays <= 180
+                  ? 3
+                  : apiData.recencyDays <= 365
+                  ? 2
+                  : 1,
+              // Frequency: 월평균 데이터 사용량을 활동성 지표로 활용
+              frequency:
+                apiData.avgDataUsageGb >= 100
+                  ? 5
+                  : apiData.avgDataUsageGb >= 70
+                  ? 4
+                  : apiData.avgDataUsageGb >= 40
+                  ? 3
+                  : apiData.avgDataUsageGb >= 20
+                  ? 2
+                  : 1,
+              // Monetary: 멤버십 레벨 기반 (연간 구매액)
+              monetary:
+                apiData.membershipLevel === "VVIP"
+                  ? 5
+                  : apiData.membershipLevel === "VIP"
+                  ? 5
+                  : apiData.membershipLevel === "GOLD"
+                  ? 4
+                  : apiData.membershipLevel === "SILVER"
+                  ? 3
+                  : apiData.membershipLevel === "WHITE"
+                  ? 2
+                  : 1,
+              totalScore: 0,
+            },
+            monthlyAverage: apiData.avgDataUsageGb
+              ? `${apiData.avgDataUsageGb.toFixed(1)}GB`
+              : "-",
+            callTime: "-", // API에 통화 시간 데이터 없음
+            lastActivity: formatDate(apiData.lastPurchaseDate),
+          };
+
+          // RFM 총점 계산
+          mappedCustomer.rfm.totalScore =
+            mappedCustomer.rfm.recency +
+            mappedCustomer.rfm.frequency +
+            mappedCustomer.rfm.monetary;
+
+          setCustomer(mappedCustomer);
+        } else {
+          setCustomer(null);
+          toast.error("고객 정보를 불러올 수 없습니다.");
+        }
+      } catch (error) {
+        console.error("고객 상세 정보 조회 실패:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          "고객 정보를 불러오는데 실패했습니다.";
+        toast.error(errorMessage);
+        setCustomer(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchCustomerDetail();
     }
-
-    const timer = setTimeout(() => {
-      setCustomer(selected || null);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
   }, [id]);
+
+  // 캠페인 추천 불러오기 함수
+  const fetchRecommendations = async () => {
+    if (!customer) return;
+
+    try {
+      setLoadingRecommendations(true);
+      console.log(`고객 ${customer.id}에 대한 캠페인 추천 요청 중...`);
+
+      const response = await customersAPI.getCampaignRecommendations(customer.id);
+      console.log("추천 API 전체 응답:", response);
+
+      // 백엔드 응답 구조: { success: true, data: { recommendations: [...] } }
+      if (response.data && response.data.success) {
+        const dataObj = response.data.data;
+        console.log("data 객체:", dataObj);
+
+        // recommendations 배열 추출
+        const recommendationList = dataObj.recommendations || [];
+        console.log("추출된 추천 목록:", recommendationList);
+        console.log("추천 개수:", recommendationList.length);
+
+        if (Array.isArray(recommendationList) && recommendationList.length > 0) {
+          setRecommendations(recommendationList);
+          toast.success(`AI가 ${recommendationList.length}개의 캠페인을 추천했습니다!`);
+        } else {
+          console.warn("추천 목록이 비어있습니다");
+          setRecommendations([]);
+        }
+      } else {
+        console.error("API 응답 실패 또는 success=false:", response.data);
+        setRecommendations([]);
+      }
+    } catch (error) {
+      console.error("캠페인 추천 조회 실패:", error);
+      console.error("에러 응답:", error.response);
+      console.error("에러 데이터:", error.response?.data);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "캠페인 추천을 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      setRecommendations([]);
+    } finally {
+      setLoadingRecommendations(false);
+    }
+  };
 
   const handleCreateMessage = () => {
     if (!customer) return;
@@ -743,7 +868,7 @@ const UserCustomer360 = () => {
               className="fas fa-user-circle"
               style={{ marginRight: "0.5rem", color: "#E60012" }}
             />
-            고객 360도 뷰
+            고객 상세정보
           </PageTitle>
           <BackButton onClick={() => navigate("/customers")}>
             <i className="fas fa-arrow-left" />
@@ -763,12 +888,14 @@ const UserCustomer360 = () => {
                     {customer.phone}
                   </span>
                   <span>
-                    <i className="fas fa-envelope" />
-                    {customer.email}
+                    <i className="fas fa-id-card" />
+                    고객 ID: {customer.id}
                   </span>
                   <span>
-                    <i className="fas fa-star" />
-                    {customer.membership}
+                    <MembershipBadge level={customer.membership}>
+                      <i className="fas fa-trophy" />
+                      {customer.membership}
+                    </MembershipBadge>
                   </span>
                 </CustomerMeta>
               </CustomerDetails>
@@ -801,14 +928,14 @@ const UserCustomer360 = () => {
               onClick={() => setActiveTab("history")}
             >
               <i className="fas fa-history" />
-              상담 이력
+              구매 이력
             </TabButton>
             <TabButton
               active={activeTab === "recommendations"}
               onClick={() => setActiveTab("recommendations")}
             >
               <i className="fas fa-lightbulb" />
-              추천 액션
+              캠페인 AI 추천
             </TabButton>
           </TabList>
         </TabContainer>
@@ -830,7 +957,7 @@ const UserCustomer360 = () => {
                 <InfoItem>
                   <InfoLabel>성별</InfoLabel>
                   <InfoValue>
-                    {customer.gender === "male" ? "남성" : "여성"}
+                    {genderMap[customer.gender] || customer.gender}
                   </InfoValue>
                 </InfoItem>
                 <InfoItem>
@@ -861,16 +988,12 @@ const UserCustomer360 = () => {
                   <InfoValue>{customer.device}</InfoValue>
                 </InfoItem>
                 <InfoItem>
-                  <InfoLabel>사용 기간</InfoLabel>
-                  <InfoValue>{customer.usageDays}</InfoValue>
+                  <InfoLabel>계약 종료일</InfoLabel>
+                  <InfoValue>{customer.contractEnd}</InfoValue>
                 </InfoItem>
                 <InfoItem>
-                  <InfoLabel>세그먼트</InfoLabel>
-                  <InfoValue>
-                    <InfoValue level={getSegmentLevel(customer)}>
-                      {customer.segment}
-                    </InfoValue>
-                  </InfoValue>
+                  <InfoLabel>사용 기간</InfoLabel>
+                  <InfoValue>{customer.usageDays}</InfoValue>
                 </InfoItem>
               </InfoList>
             </InfoCard>
@@ -922,12 +1045,12 @@ const UserCustomer360 = () => {
 
         {activeTab === "usage" && (
           <>
-            <ChartContainer>
+            {/* <ChartContainer>
               <ChartTitle>데이터 사용량 추이</ChartTitle>
               <ChartPlaceholder>
                 📊 데이터 사용량 차트 영역 (Chart.js 또는 Recharts 연동 필요)
               </ChartPlaceholder>
-            </ChartContainer>
+            </ChartContainer> */}
 
             <InfoCard>
               <CardHeader>
@@ -941,10 +1064,10 @@ const UserCustomer360 = () => {
                   <InfoLabel>데이터 사용량</InfoLabel>
                   <InfoValue>{customer.monthlyAverage}</InfoValue>
                 </InfoItem>
-                <InfoItem>
+                {/* <InfoItem>
                   <InfoLabel>통화 시간</InfoLabel>
                   <InfoValue>{customer.callTime}</InfoValue>
-                </InfoItem>
+                </InfoItem> */}
                 <InfoItem>
                   <InfoLabel>최근 활동</InfoLabel>
                   <InfoValue>{customer.lastActivity}</InfoValue>
@@ -959,95 +1082,185 @@ const UserCustomer360 = () => {
             <InfoCard style={{ marginBottom: "1.5rem" }}>
               <CardHeader>
                 <CardIcon>
-                  <i className="fas fa-headset" />
-                </CardIcon>
-                <CardTitle>상담 이력</CardTitle>
-              </CardHeader>
-              <Timeline>
-                <TimelineItem>
-                  <TimelineContent>
-                    <TimelineDate>{customer.lastContact}</TimelineDate>
-                    <TimelineTitle>상담사: 김철수</TimelineTitle>
-                    <TimelineTitle>
-                      선호 채널: {customer.preferredContact.toUpperCase()}
-                    </TimelineTitle>
-                  </TimelineContent>
-                </TimelineItem>
-              </Timeline>
-            </InfoCard>
-
-            <InfoCard>
-              <CardHeader>
-                <CardIcon>
                   <i className="fas fa-shopping-bag" />
                 </CardIcon>
                 <CardTitle>구매 이력</CardTitle>
               </CardHeader>
-              <Timeline>
-                <TimelineItem>
-                  <TimelineContent>
-                    <TimelineDate>{customer.recentPurchase}</TimelineDate>
-                    <TimelineTitle>{customer.device}</TimelineTitle>
-                    <TimelineAmount>
-                      최근 누적 결제액: ₩{customer.totalSpent.toLocaleString()}
-                    </TimelineAmount>
-                  </TimelineContent>
-                </TimelineItem>
-              </Timeline>
+              {customer.recentPurchases && customer.recentPurchases.length > 0 ? (
+                <Timeline>
+                  {customer.recentPurchases.map((purchase, index) => (
+                    <TimelineItem key={index}>
+                      <TimelineContent>
+                        <TimelineDate>{formatDate(purchase.purchaseDate)}</TimelineDate>
+                        <TimelineTitle>{purchase.productName || "상품명 없음"}</TimelineTitle>
+                        {purchase.amount && (
+                          <TimelineAmount>
+                            ₩{purchase.amount.toLocaleString()}
+                          </TimelineAmount>
+                        )}
+                      </TimelineContent>
+                    </TimelineItem>
+                  ))}
+                </Timeline>
+              ) : (
+                <Timeline>
+                  <TimelineItem>
+                    <TimelineContent>
+                      <TimelineDate>{customer.recentPurchase}</TimelineDate>
+                      <TimelineTitle>최근 구매 내역</TimelineTitle>
+                      <TimelineTitle>
+                        마지막 구매일로부터 {customer.recencyDays}일 경과
+                      </TimelineTitle>
+                    </TimelineContent>
+                  </TimelineItem>
+                </Timeline>
+              )}
             </InfoCard>
+
+            {/* <InfoCard>
+              <CardHeader>
+                <CardIcon>
+                  <i className="fas fa-heart" />
+                </CardIcon>
+                <CardTitle>선호 카테고리</CardTitle>
+              </CardHeader>
+              {customer.preferredCategories && customer.preferredCategories.length > 0 ? (
+                <InfoList>
+                  {customer.preferredCategories.map((category, index) => (
+                    <InfoItem key={index}>
+                      <InfoLabel>카테고리 {index + 1}</InfoLabel>
+                      <InfoValue>{category}</InfoValue>
+                    </InfoItem>
+                  ))}
+                </InfoList>
+              ) : (
+                <InfoList>
+                  <InfoItem>
+                    <InfoLabel>선호 카테고리</InfoLabel>
+                    <InfoValue>데이터 없음</InfoValue>
+                  </InfoItem>
+                </InfoList>
+              )}
+            </InfoCard> */}
           </>
         )}
 
         {activeTab === "recommendations" && (
-          <RecommendationGrid>
-            <RecommendationCard>
-              <RecommendationIcon>
-                <i className="fas fa-arrow-up" />
-              </RecommendationIcon>
-              <RecommendationTitle>
-                데이터 무제한 요금제 전환
-              </RecommendationTitle>
-              <RecommendationDescription>
-                AI가 고객 데이터를 분석하여 추천
-              </RecommendationDescription>
-              <RecommendationButton>
-                <i className="fas fa-paper-plane" />
-                메시지 생성
-              </RecommendationButton>
-            </RecommendationCard>
-
-            <RecommendationCard>
-              <RecommendationIcon>
-                <i className="fas fa-heart" />
-              </RecommendationIcon>
-              <RecommendationTitle>자동 결제 설정</RecommendationTitle>
-              <RecommendationDescription>
-                AI가 고객 데이터를 분석하여 추천
-              </RecommendationDescription>
-              <RecommendationButton>
-                <i className="fas fa-paper-plane" />
-                메시지 생성
-              </RecommendationButton>
-            </RecommendationCard>
-
-            <RecommendationCard>
-              <RecommendationIcon>
-                <i className="fas fa-wifi" />
-              </RecommendationIcon>
-              <RecommendationTitle>WiFi 공유기</RecommendationTitle>
-              <RecommendationDescription>
-                AI가 고객 데이터를 분석하여 추천
-              </RecommendationDescription>
-              <RecommendationButton>
-                <i className="fas fa-paper-plane" />
-                메시지 생성
-              </RecommendationButton>
-            </RecommendationCard>
-          </RecommendationGrid>
+          <>
+            {loadingRecommendations ? (
+              <CenterContainer>
+                <LoadingSpinner className="fas fa-spinner fa-spin" />
+                <LoadingText>
+                  AI가 고객 프로필을 분석하여 최적의 캠페인을 추천중입니다...
+                </LoadingText>
+                <LoadingText style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#9ca3af" }}>
+                  잠시만 기다려주세요 (최대 1분 소요)
+                </LoadingText>
+              </CenterContainer>
+            ) : recommendations.length === 0 ? (
+              <CenterContainer>
+                <EmptyIcon className="fas fa-lightbulb" />
+                <EmptyText>AI 캠페인 추천을 시작하려면 아래 버튼을 클릭하세요</EmptyText>
+                <Button
+                  onClick={fetchRecommendations}
+                  style={{ marginTop: "1.5rem" }}
+                >
+                  <i className="fas fa-magic" style={{ marginRight: "0.5rem" }} />
+                  AI 캠페인 추천 받기
+                </Button>
+              </CenterContainer>
+            ) : (
+              <>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: "1.5rem"
+                }}>
+                  <Button
+                    onClick={fetchRecommendations}
+                    style={{
+                      background: "#f3f4f6",
+                      color: "#4b5563",
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
+                    <i className="fas fa-redo" style={{ marginRight: "0.5rem" }} />
+                    새로 추천받기
+                  </Button>
+                </div>
+                <RecommendationGrid>
+                  {recommendations.map((rec, index) => (
+                    <RecommendationCard key={index}>
+                      <RecommendationIcon>
+                        <i className={`fas fa-${index === 0 ? 'crown' : index === 1 ? 'star' : 'bullhorn'}`} />
+                      </RecommendationIcon>
+                      <div style={{ marginBottom: "0.5rem" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            fontSize: "0.75rem",
+                            fontWeight: "700",
+                            background: rec.rank === 1 ? "#fef2f2" : "#fef9f3",
+                            color: rec.rank === 1 ? "#dc2626" : "#d97706",
+                          }}
+                        >
+                          추천 순위 #{rec.rank}
+                        </span>
+                        {rec.relevanceScore && (
+                          <span
+                            style={{
+                              marginLeft: "0.5rem",
+                              fontSize: "0.75rem",
+                              fontWeight: "600",
+                              color: "#059669",
+                            }}
+                          >
+                            적합도: {rec.relevanceScore}%
+                          </span>
+                        )}
+                      </div>
+                      <RecommendationTitle>
+                        {rec.campaignName || `캠페인 ID: ${rec.campaignId}`}
+                      </RecommendationTitle>
+                      <RecommendationDescription>
+                        <strong style={{ color: "#1a1a1a" }}>추천 이유:</strong><br />
+                        {rec.reason || "AI가 고객 데이터를 분석하여 추천"}
+                      </RecommendationDescription>
+                      {rec.expectedBenefit && (
+                        <RecommendationDescription style={{ marginTop: "0.5rem" }}>
+                          <strong style={{ color: "#1a1a1a" }}>기대 효과:</strong><br />
+                          {rec.expectedBenefit}
+                        </RecommendationDescription>
+                      )}
+                      <RecommendationButton
+                        onClick={() => {
+                          navigate("/message/individual", {
+                            state: {
+                              customer,
+                              campaignId: rec.campaignId,
+                              prefilledData: {
+                                phone: customer.phone,
+                                name: customer.name,
+                              },
+                            },
+                          });
+                        }}
+                      >
+                        <i className="fas fa-paper-plane" />
+                        메시지 생성
+                      </RecommendationButton>
+                    </RecommendationCard>
+                  ))}
+                </RecommendationGrid>
+              </>
+            )}
+          </>
         )}
       </Container>
     </Layout>
   );
 };
 
-export default UserCustomer360;
+export default UserCustomer;

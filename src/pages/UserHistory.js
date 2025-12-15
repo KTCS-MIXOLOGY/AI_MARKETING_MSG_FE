@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
+import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
+import { messagesAPI } from "../services/api";
 
 const HistoryContainer = styled.div`
   max-width: 1400px;
@@ -251,8 +253,8 @@ const MessageStatus = styled.span`
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: ${(props) => (props.status === "sent" ? "#D1FAE5" : "#FEE2E2")};
-  color: ${(props) => (props.status === "sent" ? "#065F46" : "#991B1B")};
+  background: ${(props) => (props.isFailed ? "#FEE2E2" : "#D1FAE5")};
+  color: ${(props) => (props.isFailed ? "#991B1B" : "#065F46")};
 `;
 
 const MessageDate = styled.span`
@@ -406,6 +408,48 @@ const DetailValue = styled.span`
   font-size: 0.9375rem;
 `;
 
+const Pagination = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1.5rem 1rem;
+`;
+
+const PageButton = styled.button`
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.75rem;
+  border: 1px solid ${(props) => (props.active ? "#e60012" : "#d4d4d4")};
+  border-radius: 8px;
+  background: ${(props) => (props.active ? "#e60012" : "#ffffff")};
+  color: ${(props) => (props.active ? "#ffffff" : "#525252")};
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: ${(props) => (props.active ? "#c50010" : "#f5f5f5")};
+    border-color: ${(props) => (props.active ? "#c50010" : "#a3a3a3")};
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
+`;
+
+const PageInfo = styled.span`
+  font-size: 0.875rem;
+  color: #737373;
+  padding: 0 1rem;
+`;
+
 const UserHistory = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -413,97 +457,179 @@ const UserHistory = () => {
     status: "",
     type: "",
     campaign: "",
-    age: "",
-    gender: "",
-    region: "",
-    membership: "",
-    period: "all",
+    period: "",
+    startDate: "",
+    endDate: "",
   });
 
-  const [messages, setMessages] = useState([]);
+  const [allMessages, setAllMessages] = useState([]); // 필터링되지 않은 전체 메시지 (통계 + 필터링 공용)
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false); // eslint-disable-line no-unused-vars
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); // eslint-disable-line no-unused-vars
+  const [totalCount, setTotalCount] = useState(0); // eslint-disable-line no-unused-vars
+  const [campaignList, setCampaignList] = useState([]); // 캠페인 목록
 
-  // 초기 메시지 데이터 (더미)
-  const defaultMessages = [
-    {
-      id: "MSG001",
-      content:
-        "지금 쓰시는 것에 WiFi 6 공유기 구가기 지하에만 안돼 현환 다른건 그냥 괜찮은데요",
-      campaign: "여름 프로모션",
-      status: "sent",
-      type: "segment",
-      targetAge: "30대",
-      targetRegion: "서울",
-      created_at: "2025-11-07T10:00:00Z",
-    },
-    {
-      id: "MSG002",
-      content:
-        "김OO 고객님, 갤럭시 S20 2년 3개월 사용 중이시네요. 갤럭시 S24로 업그레이드하시면 더 나은 경험을 하실 수 있습니다.",
-      campaign: "여름 프로모션",
-      status: "sent",
-      type: "individual",
-      recipientName: "김고객",
-      recipientPhone: "010-1234-5678",
-      created_at: "2025-11-07T11:00:00Z",
-    },
-    {
-      id: "MSG003",
-      content:
-        "김OO 고객님, 갤럭시 S20 2년 3개월 사용 중이시네요. 갤럭시 S24로 업그레이드하시면 더 나은 경험을 하실 수 있습니다. 맞춤형 프로모션 특별 혜택을 확인하세요!",
-      campaign: "5G 전환 캠페인",
-      status: "sent",
-      type: "segment",
-      targetAge: "20대",
-      targetGender: "여성",
-      targetMembership: "골드",
-      created_at: "2025-11-07T12:00:00Z",
-    },
-    {
-      id: "MSG004",
-      content: "메시지 생성 과정에서 오류가 발생했습니다. (사유: AI 응답 오류)",
-      campaign: "재가입 유도",
-      status: "failed",
-      type: "segment",
-      targetAge: "40대",
-      targetRegion: "경기",
-      targetPlan: "5G 프리미엄",
-      created_at: "2025-11-11T09:00:00Z",
-    },
-    {
-      id: "MSG005",
-      content:
-        "[KT] 고객님의 데이터 사용량이 90%를 초과했습니다. 데이터 무제한 요금제로 변경하시겠습니까?",
-      campaign: "VIP 특별 혜택",
-      status: "sent",
-      type: "individual",
-      recipientName: "이고객",
-      recipientPhone: "010-5678-1234",
-      created_at: "2025-11-08T14:00:00Z",
-    },
-    {
-      id: "MSG006",
-      content:
-        "고객님께 특별한 5G 요금제 할인 혜택을 드립니다. 지금 바로 확인하세요!",
-      campaign: "5G 전환 캠페인",
-      status: "sent",
-      type: "segment",
-      targetAge: "30대",
-      targetMembership: "플래티넘",
-      targetRegion: "서울",
-      created_at: "2025-11-09T16:00:00Z",
-    },
-  ];
+  // 전체 메시지 조회 (통계 + 필터링 공용)
+  const fetchAllMessages = useCallback(async () => {
+    try {
+      setLoading(true);
 
-  useEffect(() => {
-    setMessages(defaultMessages);
-    setFilteredMessages(defaultMessages);
+      const response = await messagesAPI.getMessages({ page: 1, size: 10000 });
+
+      if (response.data.success) {
+        const data = response.data.data;
+        const formattedMessages = data.messages.map((msg) => ({
+          id: msg.messageId,
+          content: msg.contentPreview,
+          contentPreview: msg.contentPreview,
+          campaign: msg.campaignName,
+          status: "sent",
+          type: msg.messageType === "SEGMENT" ? "segment" : "individual",
+          product: msg.productName,
+          tone: msg.tone,
+          version: msg.messageVersion,
+          charCount: msg.characterCount,
+          aiModel: msg.aiModelUsed,
+          created_at: msg.createdAt,
+        }));
+
+        setAllMessages(formattedMessages);
+
+        // 캠페인 목록 추출 (중복 제거)
+        const campaigns = [...new Set(data.messages.map(msg => msg.campaignName).filter(Boolean))];
+        setCampaignList(campaigns);
+      }
+    } catch (error) {
+      console.error("전체 메시지 조회 실패:", error);
+      toast.error("메시지 목록을 불러오는데 실패했습니다.");
+      setAllMessages([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  // 필터링 및 페이지네이션 처리
+  const applyFiltersAndPagination = useCallback(() => {
+    let filtered = [...allMessages];
+
+    // 필터 적용
+    if (filters.type) {
+      filtered = filtered.filter((msg) => msg.type === filters.type);
+    }
+    if (filters.status) {
+      filtered = filtered.filter((msg) => {
+        const isFailed = msg.contentPreview === "메시지 생성 실패";
+        if (filters.status === "failed") {
+          return isFailed;
+        } else if (filters.status === "sent") {
+          return !isFailed;
+        }
+        return true;
+      });
+    }
+    if (filters.campaign) {
+      filtered = filtered.filter((msg) =>
+        msg.campaign?.toLowerCase().includes(filters.campaign.toLowerCase())
+      );
+    }
+    if (filters.startDate || filters.endDate) {
+      filtered = filtered.filter((msg) => {
+        const msgDate = new Date(msg.created_at);
+        const startDate = filters.startDate ? new Date(filters.startDate) : null;
+        const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+        if (startDate && msgDate < startDate) return false;
+        if (endDate && msgDate > endDate) return false;
+        return true;
+      });
+    }
+
+    // 페이지네이션
+    const pageSize = 12;
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedMessages = filtered.slice(startIndex, endIndex);
+
+    setFilteredMessages(paginatedMessages);
+    setTotalPages(totalPages);
+    setTotalCount(filtered.length);
+  }, [allMessages, filters, currentPage]);
+
+  // 전체 메시지 조회 (컴포넌트 마운트 시 1회)
+  useEffect(() => {
+    fetchAllMessages();
+  }, [fetchAllMessages]);
+
+  // 필터 또는 페이지 변경 시 필터링 및 페이지네이션 적용
+  useEffect(() => {
+    if (allMessages.length > 0) {
+      applyFiltersAndPagination();
+    }
+  }, [allMessages, filters, currentPage, applyFiltersAndPagination]);
+
+  // 이름 익명화 함수 (가운데 글자 * 처리)
+  const anonymizeName = (name) => {
+    if (!name || name.length === 0) return name;
+    if (name.length === 1) return name;
+    if (name.length === 2) return name[0] + "*";
+
+    const firstChar = name[0];
+    const lastChar = name[name.length - 1];
+    const middleStars = "*".repeat(name.length - 2);
+    return firstChar + middleStars + lastChar;
+  };
+
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    // 필터 변경 시 페이지를 1로 리셋
+    setCurrentPage(1);
+
+    setFilters((prev) => {
+      const newFilters = { ...prev, [key]: value };
+
+      // 기간 필터를 선택하면 startDate와 endDate를 자동으로 설정
+      if (key === "period" && value) {
+        const today = new Date();
+        let startDate = "";
+
+        switch (value) {
+          case "today":
+            startDate = today.toISOString().split("T")[0];
+            newFilters.startDate = startDate;
+            newFilters.endDate = startDate;
+            break;
+          case "week":
+            startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+            newFilters.startDate = startDate;
+            newFilters.endDate = today.toISOString().split("T")[0];
+            break;
+          case "month":
+            startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+            newFilters.startDate = startDate;
+            newFilters.endDate = today.toISOString().split("T")[0];
+            break;
+          case "3months":
+            startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+            newFilters.startDate = startDate;
+            newFilters.endDate = today.toISOString().split("T")[0];
+            break;
+          case "6months":
+            startDate = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+            newFilters.startDate = startDate;
+            newFilters.endDate = today.toISOString().split("T")[0];
+            break;
+          default:
+            // "전체 기간" 선택 시 날짜 필터 제거
+            newFilters.startDate = "";
+            newFilters.endDate = "";
+        }
+      }
+
+      return newFilters;
+    });
   };
 
   const resetFilters = () => {
@@ -511,56 +637,12 @@ const UserHistory = () => {
       status: "",
       type: "",
       campaign: "",
-      age: "",
-      gender: "",
-      region: "",
-      membership: "",
-      period: "all",
+      period: "",
+      startDate: "",
+      endDate: "",
     };
     setFilters(reset);
-    setFilteredMessages(messages);
-  };
-
-  const applyFilters = () => {
-    let filtered = [...messages];
-
-    const campaignMap = {
-      summer: "여름",
-      "5g": "5G",
-      renewal: "재가입",
-      vip: "VIP",
-    };
-
-    if (filters.status) {
-      filtered = filtered.filter(
-        (m) => (m.status || "sent") === filters.status
-      );
-    }
-    if (filters.type) {
-      filtered = filtered.filter((m) => (m.type || "segment") === filters.type);
-    }
-    if (filters.campaign) {
-      const searchTerm = campaignMap[filters.campaign] || filters.campaign;
-      filtered = filtered.filter((m) =>
-        (m.campaign || "").includes(searchTerm)
-      );
-    }
-    if (filters.age) {
-      filtered = filtered.filter((m) => m.targetAge === filters.age);
-    }
-    if (filters.gender) {
-      filtered = filtered.filter((m) => m.targetGender === filters.gender);
-    }
-    if (filters.region) {
-      filtered = filtered.filter((m) => m.targetRegion === filters.region);
-    }
-    if (filters.membership) {
-      filtered = filtered.filter(
-        (m) => m.targetMembership === filters.membership
-      );
-    }
-
-    setFilteredMessages(filtered);
+    setCurrentPage(1); // 페이지도 첫 페이지로 리셋
   };
 
   const formatDate = (dateString) => {
@@ -572,16 +654,71 @@ const UserHistory = () => {
     });
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, contentPreview) => {
+    // contentPreview가 "메시지 생성 실패"인 경우 실패로 표시
+    if (contentPreview === "메시지 생성 실패") {
+      return "✗ 생성실패";
+    }
     return status === "sent" ? "✓ 생성완료" : "✗ 생성실패";
   };
 
-  const totalSent = messages.filter((m) => m.status === "sent").length;
-  const totalFailed = messages.filter((m) => m.status === "failed").length;
+  // 필터링되지 않은 전체 메시지 기준으로 통계 계산 (state의 allMessages 사용)
+  const totalFailed = allMessages.filter((m) => m.contentPreview === "메시지 생성 실패").length;
+  const totalSent = allMessages.filter((m) => m.contentPreview !== "메시지 생성 실패").length;
 
-  const showMessageDetail = (message) => {
-    setSelectedMessage(message);
-    setShowModal(true);
+  // 이번 달 생성 메시지 카운트 (전체 메시지 기준)
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisMonthMessages = allMessages.filter((msg) => {
+    if (msg.created_at) {
+      const msgDate = new Date(msg.created_at);
+      return msgDate >= thisMonthStart;
+    }
+    return false;
+  }).length;
+
+  const showMessageDetail = async (message) => {
+    try {
+      setLoading(true);
+      const response = await messagesAPI.getMessage(message.id);
+
+      if (response.data.success) {
+        const detail = response.data.data;
+
+        // API 응답을 기존 구조에 맞게 변환
+        const formattedDetail = {
+          id: detail.messageId,
+          content: detail.messageContent,
+          campaign: detail.campaignName,
+          status: "sent",
+          type: detail.messageType === "SEGMENT" ? "segment" : "individual",
+          product: detail.productName,
+          tone: detail.tone,
+          toneId: detail.toneId,
+          version: detail.messageVersion,
+          charCount: detail.characterCount,
+          aiModel: detail.aiModelUsed,
+          generationPrompt: detail.generationPrompt,
+          created_at: detail.createdAt,
+          // INDIVIDUAL 타입일 경우 고객 정보 (이름 익명화)
+          recipientName: detail.customerName ? anonymizeName(detail.customerName) : null,
+          customerId: detail.customerId,
+          // SEGMENT 타입일 경우 세그먼트 정보
+          segmentInfo: detail.segmentInfo,
+        };
+
+        setSelectedMessage(formattedDetail);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("메시지 상세 조회 실패:", error);
+      toast.error("메시지 상세 정보를 불러오는데 실패했습니다.");
+      // 실패 시 기본 정보만 표시
+      setSelectedMessage(message);
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const closeModal = () => {
@@ -608,7 +745,7 @@ const UserHistory = () => {
             <StatHeader>
               <div>
                 <StatTitle>생성한 메시지</StatTitle>
-                <StatValue>{messages.length}</StatValue>
+                <StatValue>{allMessages.length}</StatValue>
               </div>
               <StatIcon>
                 <i className="fas fa-file-alt" />
@@ -643,13 +780,11 @@ const UserHistory = () => {
           <StatCard>
             <StatHeader>
               <div>
-                <StatTitle>평균 전환율</StatTitle>
-                <StatValue>
-                  15.8<span style={{ fontSize: "1.5rem" }}>%</span>
-                </StatValue>
+                <StatTitle>이번 달 생성 메시지</StatTitle>
+                <StatValue>{thisMonthMessages}</StatValue>
               </div>
               <StatIcon>
-                <i className="fas fa-chart-line" />
+                <i className="fas fa-calendar-check" />
               </StatIcon>
             </StatHeader>
           </StatCard>
@@ -691,70 +826,11 @@ const UserHistory = () => {
                 onChange={(e) => handleFilterChange("campaign", e.target.value)}
               >
                 <option value="">전체</option>
-                <option value="summer">여름 프로모션</option>
-                <option value="5g">5G 전환 캠페인</option>
-                <option value="renewal">재가입 유도</option>
-                <option value="vip">VIP 특별 혜택</option>
-              </FilterSelect>
-            </FilterGroup>
-
-            <FilterGroup>
-              <FilterLabel>나이대</FilterLabel>
-              <FilterSelect
-                value={filters.age}
-                onChange={(e) => handleFilterChange("age", e.target.value)}
-              >
-                <option value="">전체</option>
-                <option value="10대">10대</option>
-                <option value="20대">20대</option>
-                <option value="30대">30대</option>
-                <option value="40대">40대</option>
-                <option value="50대">50대</option>
-                <option value="60대 이상">60대 이상</option>
-              </FilterSelect>
-            </FilterGroup>
-
-            <FilterGroup>
-              <FilterLabel>성별</FilterLabel>
-              <FilterSelect
-                value={filters.gender}
-                onChange={(e) => handleFilterChange("gender", e.target.value)}
-              >
-                <option value="">전체</option>
-                <option value="남성">남성</option>
-                <option value="여성">여성</option>
-              </FilterSelect>
-            </FilterGroup>
-
-            <FilterGroup>
-              <FilterLabel>지역</FilterLabel>
-              <FilterSelect
-                value={filters.region}
-                onChange={(e) => handleFilterChange("region", e.target.value)}
-              >
-                <option value="">전체</option>
-                <option value="서울">서울</option>
-                <option value="경기">경기</option>
-                <option value="인천">인천</option>
-                <option value="부산">부산</option>
-                <option value="대구">대구</option>
-                <option value="기타">기타 지역</option>
-              </FilterSelect>
-            </FilterGroup>
-
-            <FilterGroup>
-              <FilterLabel>멤버십</FilterLabel>
-              <FilterSelect
-                value={filters.membership}
-                onChange={(e) =>
-                  handleFilterChange("membership", e.target.value)
-                }
-              >
-                <option value="">전체</option>
-                <option value="브론즈">브론즈</option>
-                <option value="실버">실버</option>
-                <option value="골드">골드</option>
-                <option value="플래티넘">플래티넘</option>
+                {campaignList.map((campaign, index) => (
+                  <option key={index} value={campaign}>
+                    {campaign}
+                  </option>
+                ))}
               </FilterSelect>
             </FilterGroup>
 
@@ -764,7 +840,7 @@ const UserHistory = () => {
                 value={filters.period}
                 onChange={(e) => handleFilterChange("period", e.target.value)}
               >
-                <option value="all">전체 기간</option>
+                <option value="">전체 기간</option>
                 <option value="today">오늘</option>
                 <option value="week">최근 7일</option>
                 <option value="month">최근 30일</option>
@@ -778,10 +854,6 @@ const UserHistory = () => {
             <Button variant="secondary" onClick={resetFilters}>
               <i className="fas fa-redo" />
               필터 초기화
-            </Button>
-            <Button variant="primary" onClick={applyFilters}>
-              <i className="fas fa-search" />
-              조회
             </Button>
           </ButtonGroup>
         </FilterSection>
@@ -809,8 +881,8 @@ const UserHistory = () => {
                     onClick={() => showMessageDetail(msg)}
                   >
                     <MessageHeader>
-                      <MessageStatus status={msg.status || "sent"}>
-                        {getStatusText(msg.status || "sent")}
+                      <MessageStatus isFailed={msg.contentPreview === "메시지 생성 실패"}>
+                        {getStatusText(msg.status || "sent", msg.contentPreview)}
                       </MessageStatus>
                       <MessageDate>{formatDate(msg.created_at)}</MessageDate>
                     </MessageHeader>
@@ -828,15 +900,15 @@ const UserHistory = () => {
                         />
                         <span>
                           {msg.type === "individual"
-                            ? "개인 발송"
-                            : "세그먼트 발송"}
+                            ? "개인"
+                            : "세그먼트"}
                         </span>
                       </MetaItem>
                       <MetaItem>
                         <i className="fas fa-font" />
-                        <span>{msg.content.length}자</span>
+                        <span>{msg.charCount || msg.content?.length || 0}자</span>
                       </MetaItem>
-                      {msg.status === "sent" && (
+                      {/* {msg.status === "sent" && (
                         <MetaItem>
                           <i className="fas fa-check-circle" />
                           <span>전송 성공</span>
@@ -847,12 +919,44 @@ const UserHistory = () => {
                           <i className="fas fa-exclamation-circle" />
                           <span>전송 실패</span>
                         </MetaItem>
-                      )}
+                      )} */}
                     </MessageMeta>
                   </MessageCard>
                 ))}
               </MessagesGrid>
             </CardBody>
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <Pagination>
+                <PageButton
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <i className="fas fa-chevron-left" />
+                </PageButton>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PageButton
+                    key={page}
+                    active={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </PageButton>
+                ))}
+
+                <PageButton
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <i className="fas fa-chevron-right" />
+                </PageButton>
+
+                <PageInfo>
+                  {currentPage} / {totalPages} 페이지
+                </PageInfo>
+              </Pagination>
+            )}
           </Card>
         )}
       </HistoryContainer>
@@ -872,13 +976,13 @@ const UserHistory = () => {
                 <DetailRow>
                   <DetailLabel>상태</DetailLabel>
                   <DetailValue>
-                    <MessageStatus status={selectedMessage.status || "sent"}>
-                      {getStatusText(selectedMessage.status || "sent")}
+                    <MessageStatus isFailed={selectedMessage.content === "메시지 생성 실패"}>
+                      {getStatusText(selectedMessage.status || "sent", selectedMessage.content)}
                     </MessageStatus>
                   </DetailValue>
                 </DetailRow>
                 <DetailRow>
-                  <DetailLabel>발송 유형</DetailLabel>
+                  <DetailLabel>생성 유형</DetailLabel>
                   <DetailValue>
                     <i
                       className={`fas fa-${
@@ -890,20 +994,28 @@ const UserHistory = () => {
                       }}
                     />
                     {selectedMessage.type === "individual"
-                      ? "개인 발송"
-                      : "세그먼트 발송"}
+                      ? "개인"
+                      : "세그먼트"}
                   </DetailValue>
                 </DetailRow>
                 <DetailRow>
                   <DetailLabel>캠페인</DetailLabel>
                   <DetailValue>{selectedMessage.campaign}</DetailValue>
                 </DetailRow>
+                <DetailRow>
+                  <DetailLabel>상품</DetailLabel>
+                  <DetailValue>{selectedMessage.product}</DetailValue>
+                </DetailRow>
+                <DetailRow>
+                  <DetailLabel>톤</DetailLabel>
+                  <DetailValue>{selectedMessage.tone}</DetailValue>
+                </DetailRow>
                 {selectedMessage.type === "individual" && (
                   <DetailRow>
                     <DetailLabel>수신자</DetailLabel>
                     <DetailValue>
-                      {selectedMessage.recipientName} (
-                      {selectedMessage.recipientPhone})
+                      {selectedMessage.recipientName} 
+                      {selectedMessage.recipientPhone}
                     </DetailValue>
                   </DetailRow>
                 )}

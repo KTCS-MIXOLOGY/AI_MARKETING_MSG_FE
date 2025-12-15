@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { toast } from "react-toastify";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
+import { segmentsAPI } from "../services/api";
 
 /* 컨테이너 & 헤더 */
 
@@ -57,31 +59,6 @@ const Select = styled.select`
   &:focus {
     border-color: #e60012;
     box-shadow: 0 0 0 3px rgba(230, 0, 18, 0.08);
-  }
-`;
-
-const NewSegmentButton = styled.button`
-  padding: 0.75rem 1.6rem;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  background: #e60012;
-  color: #ffffff;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 8px 16px rgba(230, 0, 18, 0.25);
-  transition: all 0.15s ease;
-
-  &:hover {
-    background: #b8000e;
-    transform: translateY(-1px);
-  }
-
-  i {
-    font-size: 0.95rem;
   }
 `;
 
@@ -153,38 +130,73 @@ const CountBadge = styled.span`
   color: #2c5282;
 `;
 
-/* 작업 아이콘 */
+/* 로딩 & 빈 상태 */
 
-const ActionsCell = styled.div`
-  display: inline-flex;
-  gap: 0.5rem;
+const LoadingSpinner = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  color: #9ca3af;
+  font-size: 1rem;
 `;
 
-const IconButton = styled.button`
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  border: ${(props) =>
-    props.variant === "danger" ? "none" : "1px solid #e5e7eb"};
-  background: ${(props) =>
-    props.variant === "danger" ? "#e60012" : "#ffffff"};
-  color: ${(props) => (props.variant === "danger" ? "#ffffff" : "#4b5563")};
-  display: inline-flex;
-  align-items: center;
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+`;
+
+const EmptyIcon = styled.i`
+  font-size: 3rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+`;
+
+const EmptyText = styled.p`
+  font-size: 1rem;
+  color: #9ca3af;
+  margin: 0;
+`;
+
+/* 페이지네이션 */
+
+const PaginationContainer = styled.div`
+  display: flex;
   justify-content: center;
-  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+`;
+
+const PageButton = styled.button`
+  min-width: 38px;
+  height: 38px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid ${(props) => (props.active ? "#e60012" : "#e5e7eb")};
+  background: ${(props) => (props.active ? "#e60012" : "#ffffff")};
+  color: ${(props) => (props.active ? "#ffffff" : "#4b5563")};
+  font-size: 0.875rem;
+  font-weight: ${(props) => (props.active ? "600" : "500")};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? "0.4" : "1")};
   transition: all 0.15s ease;
 
-  &:hover {
-    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
-    transform: translateY(-1px);
-    background: ${(props) =>
-      props.variant === "danger" ? "#b8000e" : "#f9fafb"};
+  &:hover:not(:disabled) {
+    background: ${(props) => (props.active ? "#b8000e" : "#f9fafb")};
+    border-color: ${(props) => (props.active ? "#b8000e" : "#d1d5db")};
   }
 
   i {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
+`;
+
+const PageInfo = styled.span`
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0.5rem;
 `;
 
 /* 모달 */
@@ -337,102 +349,139 @@ const AdminSegments = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [creatorFilter, setCreatorFilter] = useState("all");
   const [sizeFilter, setSizeFilter] = useState("all");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [segments, setSegments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSegment, setSelectedSegment] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const [newSegment, setNewSegment] = useState({
-    name: "",
-    criteria: "",
-    description: "",
-    customerCount: "",
-  });
+  // 세그먼트 목록 조회
+  useEffect(() => {
+    fetchSegments();
+  }, []);
 
-  // Mock segment data
-  const segments = [
-    {
-      id: 1,
-      name: "VIP 고객",
-      criteria: "연간 구매액 500만원 이상",
-      customerCount: 1250,
-      description: "고액 구매 고객 대상 서비스",
-      createdBy: "CRM팀",
-      createdAt: "2024-10-01",
-      lastUsed: "2024-11-10",
-    },
-    {
-      id: 2,
-      name: "신규 가입자",
-      criteria: "최근 30일 이내 가입",
-      customerCount: 3450,
-      description: "신규 고객 대상 환영 이벤트",
-      createdBy: "마케팅팀",
-      createdAt: "2024-09-15",
-      lastUsed: "2024-11-08",
-    },
-    {
-      id: 3,
-      name: "휴면 고객",
-      criteria: "최근 90일 간 로그인 없음",
-      customerCount: 2890,
-      description: "재활성화를 위한 타겟 캠페인",
-      createdBy: "고객경험팀",
-      createdAt: "2024-08-20",
-      lastUsed: "2024-10-25",
-    },
-    {
-      id: 4,
-      name: "20대 여성",
-      criteria: "나이 20-29세, 여성",
-      customerCount: 5670,
-      description: "젊은 여성 고객층 타겟팅",
-      createdBy: "마케팅팀",
-      createdAt: "2024-09-01",
-      lastUsed: "2024-11-09",
-    },
-  ];
+  // 세그먼트명 자동 생성 함수
+  const generateSegmentName = (segment) => {
+    const parts = [];
 
-  const creators = [...new Set(segments.map((s) => s.createdBy))];
+    if (segment.gender) {
+      parts.push(segment.gender === 'MALE' ? '남성' : segment.gender === 'FEMALE' ? '여성' : segment.gender);
+    }
+
+    if (segment.ageMin && segment.ageMax) {
+      parts.push(`${segment.ageMin}-${segment.ageMax}세`);
+    } else if (segment.ageMin) {
+      parts.push(`${segment.ageMin}세 이상`);
+    } else if (segment.ageMax) {
+      parts.push(`${segment.ageMax}세 이하`);
+    }
+
+    if (segment.regions && segment.regions.length > 0) {
+      if (segment.regions.length === 1) {
+        parts.push(segment.regions[0]);
+      } else {
+        parts.push(`${segment.regions[0]} 외 ${segment.regions.length - 1}개`);
+      }
+    }
+
+    if (segment.membershipLevel) {
+      parts.push(segment.membershipLevel);
+    }
+
+    if (segment.recencyMaxDays) {
+      parts.push(`최근${segment.recencyMaxDays}일`);
+    }
+
+    return parts.length > 0 ? parts.join('_') : `세그먼트_${segment.segmentId}`;
+  };
+
+  const fetchSegments = async () => {
+    try {
+      setLoading(true);
+      const response = await segmentsAPI.getSegments();
+
+      console.log("Segments API Response:", response);
+
+      // Backend 응답: { success: true, data: { segments: [...], totalCount: N } }
+      if (response?.data?.success && response?.data?.data?.segments) {
+        // 세그먼트명이 없는 경우 자동 생성
+        const segmentsWithNames = response.data.data.segments.map(segment => ({
+          ...segment,
+          segmentName: segment.segmentName || generateSegmentName(segment)
+        }));
+        setSegments(segmentsWithNames);
+        console.log("Loaded segments:", segmentsWithNames);
+      } else {
+        console.warn("Unexpected response structure:", response);
+        setSegments([]);
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "세그먼트 목록을 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to fetch segments:", error);
+      setSegments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const membershipLevels = [...new Set(segments.map((s) => s.membershipLevel).filter(Boolean))];
 
   const filteredSegments = segments.filter((s) => {
-    const creatorOk = creatorFilter === "all" || s.createdBy === creatorFilter;
+    const membershipOk = creatorFilter === "all" || s.membershipLevel === creatorFilter;
 
     let sizeOk = true;
     if (sizeFilter === "small") {
-      sizeOk = s.customerCount < 2000;
+      sizeOk = (s.targetCustomerCount || 0) < 10;
     } else if (sizeFilter === "medium") {
-      sizeOk = s.customerCount >= 2000 && s.customerCount <= 4000;
+      sizeOk = (s.targetCustomerCount || 0) >= 10 && (s.targetCustomerCount || 0) <= 100;
     } else if (sizeFilter === "large") {
-      sizeOk = s.customerCount > 4000;
+      sizeOk = (s.targetCustomerCount || 0) > 100;
     }
 
-    return creatorOk && sizeOk;
+    return membershipOk && sizeOk;
   });
 
-  const handleOpenModal = () => {
-    setNewSegment({
-      name: "",
-      criteria: "",
-      description: "",
-      customerCount: "",
-    });
-    setIsModalOpen(true);
-  };
+  // 페이지네이션
+  const totalPages = Math.ceil(filteredSegments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSegments = filteredSegments.slice(startIndex, endIndex);
 
-  const handleCreateSegment = () => {
-    console.log("새 세그먼트 생성:", newSegment);
-    alert("세그먼트가 생성되었습니다. (Mock)");
-    setIsModalOpen(false);
-  };
+  // 필터 변경 시 첫 페이지로 이동
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [creatorFilter, sizeFilter]);
 
-  const handleEditSegment = (segment) => {
-    console.log("편집 클릭:", segment);
-    alert(`'${segment.name}' 세그먼트 편집 기능은 추후 연결 예정입니다.`);
-  };
+  const openDetailModal = async (segment) => {
+    try {
+      setLoading(true);
+      const response = await segmentsAPI.getSegment(segment.segmentId);
 
-  const handleDeleteSegment = (segment) => {
-    if (window.confirm(`'${segment.name}' 세그먼트를 삭제하시겠습니까?`)) {
-      console.log("삭제:", segment);
-      alert("세그먼트 삭제 요청이 처리되었습니다. (Mock)");
+      if (response?.data?.success && response?.data?.data) {
+        const segmentData = response.data.data;
+        // 세그먼트명이 없는 경우 자동 생성
+        setSelectedSegment({
+          ...segmentData,
+          segmentName: segmentData.segmentName || generateSegmentName(segmentData)
+        });
+        setIsDetailModalOpen(true);
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "세그먼트 상세 정보를 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to fetch segment detail:", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const closeDetailModal = () => {
+    setSelectedSegment(null);
+    setIsDetailModalOpen(false);
   };
 
   return (
@@ -452,17 +501,17 @@ const AdminSegments = () => {
           <PageTitle>세그먼트 관리</PageTitle>
         </PageHeader>
 
-        {/* 필터 + 새 세그먼트 버튼 */}
+        {/* 필터 */}
         <FilterBar>
           <FilterGroup>
             <Select
               value={creatorFilter}
               onChange={(e) => setCreatorFilter(e.target.value)}
             >
-              <option value="all">전체 생성자</option>
-              {creators.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+              <option value="all">전체 멤버십 등급</option>
+              {membershipLevels.map((level) => (
+                <option key={level} value={level}>
+                  {level}
                 </option>
               ))}
             </Select>
@@ -472,80 +521,134 @@ const AdminSegments = () => {
               onChange={(e) => setSizeFilter(e.target.value)}
             >
               <option value="all">전체 고객 수</option>
-              <option value="small">2,000명 미만</option>
-              <option value="medium">2,000 ~ 4,000명</option>
-              <option value="large">4,000명 이상</option>
+              <option value="small">10명 미만</option>
+              <option value="medium">10 ~ 100명</option>
+              <option value="large">100명 이상</option>
             </Select>
           </FilterGroup>
-
-          <NewSegmentButton type="button" onClick={handleOpenModal}>
-            <i className="fas fa-plus" />
-            세그먼트 생성
-          </NewSegmentButton>
         </FilterBar>
 
+        {/* 로딩 상태 */}
+        {loading && (
+          <LoadingSpinner>
+            <i className="fas fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i>
+            불러오는 중...
+          </LoadingSpinner>
+        )}
+
         {/* 테이블 */}
-        <TableContainer>
-          <Table>
-            <Thead>
-              <tr>
-                <Th>세그먼트명</Th>
-                <Th>기준</Th>
-                <Th>고객수</Th>
-                <Th>설명</Th>
-                <Th>생성자</Th>
-                <Th>생성일</Th>
-                <Th>최근 사용</Th>
-                <Th>작업</Th>
-              </tr>
-            </Thead>
-            <Tbody>
-              {filteredSegments.map((segment) => (
-                <Tr key={segment.id}>
-                  <Td>
-                    <SegmentBadge>{segment.name}</SegmentBadge>
-                  </Td>
-                  <Td>{segment.criteria}</Td>
-                  <Td>
-                    <CountBadge>
-                      {segment.customerCount.toLocaleString()}
-                    </CountBadge>
-                  </Td>
-                  <Td>{segment.description}</Td>
-                  <Td>{segment.createdBy}</Td>
-                  <Td>{segment.createdAt}</Td>
-                  <Td>{segment.lastUsed}</Td>
-                  <Td>
-                    <ActionsCell>
-                      <IconButton
-                        type="button"
-                        onClick={() => handleEditSegment(segment)}
-                      >
-                        <i className="fas fa-pen" />
-                      </IconButton>
-                      <IconButton
-                        type="button"
-                        variant="danger"
-                        onClick={() => handleDeleteSegment(segment)}
-                      >
-                        <i className="fas fa-trash" />
-                      </IconButton>
-                    </ActionsCell>
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
+        {!loading && (
+          <TableContainer>
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>세그먼트명</Th>
+                  <Th>필터 조건</Th>
+                  <Th>타겟 고객 수</Th>
+                  <Th>활성 필터 수</Th>
+                  <Th>생성일</Th>
+                </tr>
+              </Thead>
+              <Tbody>
+                {currentSegments.length > 0 ?
+                  currentSegments.map((segment) => {
+                    // 필터 조건 텍스트 생성
+                    const criteria = [];
+                    if (segment.ageMin && segment.ageMax) {
+                      criteria.push(`연령 ${segment.ageMin}-${segment.ageMax}세`);
+                    }
+                    if (segment.gender) {
+                      criteria.push(`성별 ${segment.gender === 'MALE' ? '남성' : segment.gender === 'FEMALE' ? '여성' : segment.gender}`);
+                    }
+                    if (segment.regions && segment.regions.length > 0) {
+                      criteria.push(`지역 ${segment.regions.join(', ')}`);
+                    }
+                    if (segment.membershipLevel) {
+                      criteria.push(`등급 ${segment.membershipLevel}`);
+                    }
+
+                    // 활성 필터 수 계산
+                    let activeFilterCount = 0;
+                    if (segment.ageMin || segment.ageMax) activeFilterCount++;
+                    if (segment.gender) activeFilterCount++;
+                    if (segment.regions && segment.regions.length > 0) activeFilterCount++;
+                    if (segment.membershipLevel) activeFilterCount++;
+                    if (segment.recencyMaxDays) activeFilterCount++;
+
+                    const criteriaText = criteria.length > 0 ? criteria.join(', ') : '-';
+
+                    return (
+                      <Tr key={segment.segmentId} onClick={() => openDetailModal(segment)} style={{ cursor: 'pointer' }}>
+                        <Td>
+                          <SegmentBadge>{segment.segmentName}</SegmentBadge>
+                        </Td>
+                        <Td>{criteriaText}</Td>
+                        <Td>
+                          <CountBadge>
+                            {(segment.targetCustomerCount || 0).toLocaleString()}명
+                          </CountBadge>
+                        </Td>
+                        <Td>{activeFilterCount}개</Td>
+                        <Td>{segment.createdAt?.split("T")[0] || "-"}</Td>
+                      </Tr>
+                    );
+                  })
+                  :
+                  <tr>
+                    <Td colSpan={5}>
+                      <EmptyState>
+                        <EmptyIcon className="fas fa-layer-group" />
+                        <EmptyText>조건에 맞는 세그먼트가 없습니다.</EmptyText>
+                      </EmptyState>
+                    </Td>
+                  </tr>
+                }
+              </Tbody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {/* 페이지네이션 */}
+        {!loading && filteredSegments.length > 0 && (
+          <PaginationContainer>
+            <PageButton
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <i className="fas fa-chevron-left" />
+            </PageButton>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PageButton
+                key={page}
+                active={page === currentPage}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </PageButton>
+            ))}
+
+            <PageButton
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              <i className="fas fa-chevron-right" />
+            </PageButton>
+
+            <PageInfo>
+              {filteredSegments.length}개 중 {startIndex + 1}-{Math.min(endIndex, filteredSegments.length)}
+            </PageInfo>
+          </PaginationContainer>
+        )}
       </Container>
 
-      {/* 세그먼트 생성 모달 */}
-      {isModalOpen && (
-        <ModalOverlay>
-          <ModalContent>
+      {/* 세그먼트 상세 모달 */}
+      {isDetailModalOpen && selectedSegment && (
+        <ModalOverlay onClick={closeDetailModal}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>세그먼트 생성</ModalTitle>
-              <CloseButton onClick={() => setIsModalOpen(false)}>
+              <ModalTitle>세그먼트 상세 정보</ModalTitle>
+              <CloseButton onClick={closeDetailModal}>
                 &times;
               </CloseButton>
             </ModalHeader>
@@ -554,70 +657,110 @@ const AdminSegments = () => {
                 <ModalLabel>세그먼트명</ModalLabel>
                 <ModalInput
                   type="text"
-                  value={newSegment.name}
-                  onChange={(e) =>
-                    setNewSegment((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  placeholder="예: VIP 고객, 신규 가입자"
-                />
-              </ModalFormGroup>
-
-              <ModalFormGroup>
-                <ModalLabel>선정 기준</ModalLabel>
-                <ModalInput
-                  type="text"
-                  value={newSegment.criteria}
-                  onChange={(e) =>
-                    setNewSegment((prev) => ({
-                      ...prev,
-                      criteria: e.target.value,
-                    }))
-                  }
-                  placeholder="예: 연간 구매액 500만원 이상"
+                  value={selectedSegment.segmentName || ''}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
                 />
               </ModalFormGroup>
 
               <ModalFormGroup>
                 <ModalLabel>설명</ModalLabel>
                 <ModalTextarea
-                  value={newSegment.description}
-                  onChange={(e) =>
-                    setNewSegment((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="세그먼트 활용 목적과 특징을 간단히 적어주세요."
+                  value={selectedSegment.description || '설명이 없습니다.'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
                 />
               </ModalFormGroup>
 
               <ModalFormGroup>
-                <ModalLabel>예상 고객 수 (선택)</ModalLabel>
+                <ModalLabel>연령 범위</ModalLabel>
                 <ModalInput
-                  type="number"
-                  value={newSegment.customerCount}
-                  onChange={(e) =>
-                    setNewSegment((prev) => ({
-                      ...prev,
-                      customerCount: e.target.value,
-                    }))
-                  }
-                  placeholder="예상 고객 수를 입력하세요"
+                  type="text"
+                  value={selectedSegment.ageMin && selectedSegment.ageMax
+                    ? `${selectedSegment.ageMin}세 ~ ${selectedSegment.ageMax}세`
+                    : '제한 없음'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>성별</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={selectedSegment.gender
+                    ? selectedSegment.gender === 'MALE' ? '남성' : selectedSegment.gender === 'FEMALE' ? '여성' : selectedSegment.gender
+                    : '제한 없음'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>지역</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={selectedSegment.regions && selectedSegment.regions.length > 0
+                    ? selectedSegment.regions.join(', ')
+                    : '제한 없음'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>멤버십 등급</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={selectedSegment.membershipLevel || '제한 없음'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>최대 미구매 일수</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={selectedSegment.recencyMaxDays ? `최근 ${selectedSegment.recencyMaxDays}일` : '제한 없음'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>타겟 고객 수</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={`${(selectedSegment.targetCustomerCount || 0).toLocaleString()}명`}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>활성 필터 수</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={`${selectedSegment.activeFilterCount || 0}개`}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
+                />
+              </ModalFormGroup>
+
+              <ModalFormGroup>
+                <ModalLabel>생성일</ModalLabel>
+                <ModalInput
+                  type="text"
+                  value={selectedSegment.createdAt?.split("T")[0] || '-'}
+                  readOnly
+                  style={{ background: '#f9fafb', cursor: 'default' }}
                 />
               </ModalFormGroup>
 
               <ModalButtonRow>
-                <ModalSecondaryButton
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  취소
-                </ModalSecondaryButton>
-                <ModalPrimaryButton type="button" onClick={handleCreateSegment}>
-                  세그먼트 생성
+                <ModalPrimaryButton type="button" onClick={closeDetailModal}>
+                  닫기
                 </ModalPrimaryButton>
               </ModalButtonRow>
             </ModalBody>

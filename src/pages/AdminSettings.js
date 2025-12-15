@@ -1,12 +1,14 @@
-// src/pages/AdminSettings.jsx (예시)
+// src/pages/AdminSettings.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 import Layout from "../components/common/Layout";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
+import { profileAPI } from "../services/api";
 
 const SettingsContainer = styled.div`
   padding: 2rem;
@@ -201,10 +203,12 @@ const FeatureCard = styled.div`
   border-radius: 8px;
   padding: 1.25rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     border-color: #e60012;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
   }
 
   i {
@@ -234,20 +238,51 @@ const AdminSettings = () => {
   const { user, logout } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-
-  // 관리자 기준 기본값: 김영희
-  const displayName =
-    user?.name && user.name !== "관리자" ? user.name : "김영희";
-  const displayEmail = user?.email || "younghee.kim@ktcs.com";
+  const [loading, setLoading] = useState(true);
+  const [userDetail, setUserDetail] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: displayName,
-    email: displayEmail,
-    phone: "010-1234-5678",
+    name: "",
+    email: "",
+    phone: "",
+    department: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+  // 사용자 상세 정보 조회
+  useEffect(() => {
+    fetchUserDetail();
+  }, []);
+
+  const fetchUserDetail = async () => {
+    try {
+      setLoading(true);
+      const response = await profileAPI.getMyProfile();
+
+      if (response?.data?.success && response?.data?.data) {
+        const userData = response.data.data;
+        setUserDetail(userData);
+        setFormData({
+          name: userData.name || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          department: userData.department || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "사용자 정보를 불러오는데 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to fetch user detail:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -257,22 +292,65 @@ const AdminSettings = () => {
     }));
   };
 
-  const handleSaveProfile = () => {
-    alert("프로필이 저장되었습니다. (Mock)");
+  const handleSaveProfile = async () => {
+    try {
+      const updateData = {
+        email: formData.email,
+        phone: formData.phone,
+        department: formData.department,
+      };
+
+      const response = await profileAPI.updateMyProfile(updateData);
+
+      if (response?.data?.success) {
+        toast.success("프로필이 성공적으로 저장되었습니다.");
+        await fetchUserDetail(); // 최신 정보 다시 가져오기
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "프로필 저장에 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to update profile:", error);
+    }
   };
 
-  const handleChangePassword = () => {
-    if (formData.newPassword !== formData.confirmPassword) {
-      alert("새 비밀번호가 일치하지 않습니다.");
+  const handleChangePassword = async () => {
+    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+      toast.error("모든 비밀번호 필드를 입력해주세요.");
       return;
     }
-    alert("비밀번호가 변경되었습니다. (Mock)");
-    setFormData((prev) => ({
-      ...prev,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    }));
+
+    if (formData.newPassword.length < 6) {
+      toast.error("새 비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    try {
+      const response = await profileAPI.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      });
+
+      if (response?.data?.success) {
+        toast.success("비밀번호가 성공적으로 변경되었습니다.");
+        setFormData((prev) => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
+      toast.error(errorMessage);
+      console.error("Failed to change password:", error);
+    }
   };
 
   const handleLogout = () => {
@@ -315,27 +393,61 @@ const AdminSettings = () => {
           <SettingsSection>
             <SectionTitle>
               <i className="fas fa-user-shield"></i>
-              관리자 정보
+              사용자 정보
             </SectionTitle>
 
-            <InfoCard>
-              <InfoRow>
-                <InfoLabel>이름</InfoLabel>
-                <InfoValue>{displayName}</InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>이메일</InfoLabel>
-                <InfoValue>{displayEmail}</InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>역할</InfoLabel>
-                <InfoValue>관리자</InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>가입일</InfoLabel>
-                <InfoValue>2024-01-15</InfoValue>
-              </InfoRow>
-            </InfoCard>
+            {loading ? (
+              <InfoCard>
+                <p style={{ textAlign: "center", color: "#737373" }}>
+                  로딩 중...
+                </p>
+              </InfoCard>
+            ) : userDetail ? (
+              <InfoCard>
+                <InfoRow>
+                  <InfoLabel>사용자명</InfoLabel>
+                  <InfoValue>{userDetail.username || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>이름</InfoLabel>
+                  <InfoValue>{userDetail.name || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>이메일</InfoLabel>
+                  <InfoValue>{userDetail.email || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>전화번호</InfoLabel>
+                  <InfoValue>{userDetail.phone || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>부서</InfoLabel>
+                  <InfoValue>{userDetail.department || "-"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>역할</InfoLabel>
+                  <InfoValue>
+                    {userDetail.role === "ADMIN" ? "관리자" : userDetail.role === "EXECUTOR" ? "실행자" : userDetail.role}
+                  </InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>상태</InfoLabel>
+                  <InfoValue>
+                    {userDetail.status === "APPROVED" ? "승인됨" : userDetail.status === "PENDING" ? "대기중" : userDetail.status === "REJECTED" ? "거부됨" : userDetail.status}
+                  </InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>가입일</InfoLabel>
+                  <InfoValue>{userDetail.createdAt?.split("T")[0] || "-"}</InfoValue>
+                </InfoRow>
+              </InfoCard>
+            ) : (
+              <InfoCard>
+                <p style={{ textAlign: "center", color: "#737373" }}>
+                  사용자 정보를 불러올 수 없습니다.
+                </p>
+              </InfoCard>
+            )}
           </SettingsSection>
 
           <SettingsSection>
@@ -350,8 +462,8 @@ const AdminSettings = () => {
                 type="text"
                 name="name"
                 value={formData.name}
-                onChange={handleInputChange}
-                placeholder="이름을 입력하세요"
+                disabled
+                placeholder="이름은 수정할 수 없습니다"
               />
             </FormGroup>
 
@@ -367,13 +479,24 @@ const AdminSettings = () => {
             </FormGroup>
 
             <FormGroup>
-              <FormLabel>전화번호</FormLabel>
+              <FormLabel>전화번호 (010-1234-5678 형식)</FormLabel>
               <FormInput
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="전화번호를 입력하세요"
+                placeholder="010-1234-5678"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>부서</FormLabel>
+              <FormInput
+                type="text"
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                placeholder="부서명을 입력하세요"
               />
             </FormGroup>
 
@@ -489,7 +612,7 @@ const AdminSettings = () => {
             </HelpContent>
 
             <FeatureGrid>
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin")}>
                 <i className="fas fa-home"></i>
                 <h4>홈</h4>
                 <p>
@@ -499,7 +622,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/campaigns")}>
                 <i className="fas fa-bullhorn"></i>
                 <h4>캠페인 관리</h4>
                 <p>
@@ -509,7 +632,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/products")}>
                 <i className="fas fa-box"></i>
                 <h4>상품 관리</h4>
                 <p>
@@ -519,7 +642,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/segments")}>
                 <i className="fas fa-users"></i>
                 <h4>세그먼트 관리</h4>
                 <p>
@@ -529,7 +652,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/users")}>
                 <i className="fas fa-user-cog"></i>
                 <h4>실행자 관리</h4>
                 <p>
@@ -539,7 +662,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => navigate("/admin/messages")}>
                 <i className="fas fa-clipboard-list"></i>
                 <h4>로그 관리</h4>
                 <p>
@@ -549,7 +672,7 @@ const AdminSettings = () => {
                 </p>
               </FeatureCard>
 
-              <FeatureCard>
+              <FeatureCard onClick={() => setActiveTab("profile")}>
                 <i className="fas fa-cog"></i>
                 <h4>설정</h4>
                 <p>
