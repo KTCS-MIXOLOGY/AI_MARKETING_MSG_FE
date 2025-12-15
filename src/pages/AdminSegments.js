@@ -361,6 +361,41 @@ const AdminSegments = () => {
     fetchSegments();
   }, []);
 
+  // 세그먼트명 자동 생성 함수
+  const generateSegmentName = (segment) => {
+    const parts = [];
+
+    if (segment.gender) {
+      parts.push(segment.gender === 'MALE' ? '남성' : segment.gender === 'FEMALE' ? '여성' : segment.gender);
+    }
+
+    if (segment.ageMin && segment.ageMax) {
+      parts.push(`${segment.ageMin}-${segment.ageMax}세`);
+    } else if (segment.ageMin) {
+      parts.push(`${segment.ageMin}세 이상`);
+    } else if (segment.ageMax) {
+      parts.push(`${segment.ageMax}세 이하`);
+    }
+
+    if (segment.regions && segment.regions.length > 0) {
+      if (segment.regions.length === 1) {
+        parts.push(segment.regions[0]);
+      } else {
+        parts.push(`${segment.regions[0]} 외 ${segment.regions.length - 1}개`);
+      }
+    }
+
+    if (segment.membershipLevel) {
+      parts.push(segment.membershipLevel);
+    }
+
+    if (segment.recencyMaxDays) {
+      parts.push(`최근${segment.recencyMaxDays}일`);
+    }
+
+    return parts.length > 0 ? parts.join('_') : `세그먼트_${segment.segmentId}`;
+  };
+
   const fetchSegments = async () => {
     try {
       setLoading(true);
@@ -370,8 +405,13 @@ const AdminSegments = () => {
 
       // Backend 응답: { success: true, data: { segments: [...], totalCount: N } }
       if (response?.data?.success && response?.data?.data?.segments) {
-        setSegments(response.data.data.segments);
-        console.log("Loaded segments:", response.data.data.segments);
+        // 세그먼트명이 없는 경우 자동 생성
+        const segmentsWithNames = response.data.data.segments.map(segment => ({
+          ...segment,
+          segmentName: segment.segmentName || generateSegmentName(segment)
+        }));
+        setSegments(segmentsWithNames);
+        console.log("Loaded segments:", segmentsWithNames);
       } else {
         console.warn("Unexpected response structure:", response);
         setSegments([]);
@@ -421,7 +461,12 @@ const AdminSegments = () => {
       const response = await segmentsAPI.getSegment(segment.segmentId);
 
       if (response?.data?.success && response?.data?.data) {
-        setSelectedSegment(response.data.data);
+        const segmentData = response.data.data;
+        // 세그먼트명이 없는 경우 자동 생성
+        setSelectedSegment({
+          ...segmentData,
+          segmentName: segmentData.segmentName || generateSegmentName(segmentData)
+        });
         setIsDetailModalOpen(true);
       }
     } catch (error) {
