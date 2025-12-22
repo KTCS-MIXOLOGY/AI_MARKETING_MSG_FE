@@ -605,12 +605,6 @@ const AdminSettings = () => {
               페이지별 기능 안내
             </SectionTitle>
 
-            <HelpContent>
-              관리자 권한으로 사용할 수 있는 주요 페이지 기능을 정리했습니다. 각
-              페이지의 역할을 이해하고, 실행자 계정이 사용할 수 있는 범위와
-              구분해서 관리해 주세요.
-            </HelpContent>
-
             <FeatureGrid>
               <FeatureCard onClick={() => navigate("/admin")}>
                 <i className="fas fa-home"></i>
