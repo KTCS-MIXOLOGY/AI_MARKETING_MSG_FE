@@ -871,7 +871,7 @@ const UserHistory = () => {
           <Card>
             <CardHeader>
               <CardTitle>메시지 목록</CardTitle>
-              <Badge>{filteredMessages.length}건</Badge>
+              <Badge>{totalCount}건</Badge>
             </CardHeader>
             <CardBody>
               <MessagesGrid>
